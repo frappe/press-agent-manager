@@ -429,7 +429,7 @@ def _handle_function_result(result: Any) -> Response:
 			result.status_code = status
 		return result
 
-	if isinstance(result, (dict, list)):
+	if isinstance(result, dict | list):
 		return jsonify(result, status_code=status or 200)
 
 	return Response(str(result), status=status or 200, mimetype="text/plain")
