@@ -9,6 +9,8 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # "frappe~=15.0.0" # Installed and managed by bench.
+    "pydantic~=2.12.5",
+    "pydantic-core~=2.41.5"
 ]
 
 [build-system]
