@@ -1,6 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "autoname": "UUID",
  "creation": "2025-12-10 10:25:05.703375",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -104,10 +104,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-10 16:37:43.353388",
+ "modified": "2025-12-11 01:53:28.703092",
  "modified_by": "Administrator",
  "module": "Agent",
  "name": "Agent Job Step",
+ "naming_rule": "UUID",
  "owner": "Administrator",
  "permissions": [
   {
@@ -119,6 +120,19 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Agent Admin",
+   "select": 1,
    "share": 1,
    "write": 1
   }

@@ -170,7 +170,7 @@ fixtures = [
 				["Agent Admin", "Agent Resource Owner"],
 			]
 		},
-	},
+	}
 ]
 # Testing
 # -------

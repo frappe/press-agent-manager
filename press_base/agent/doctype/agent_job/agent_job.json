@@ -1,6 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "autoname": "UUID",
  "creation": "2025-12-10 10:24:11.002224",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -98,10 +98,11 @@
    "link_fieldname": "agent_job"
   }
  ],
- "modified": "2025-12-10 15:45:22.617675",
+ "modified": "2025-12-11 01:51:47.899155",
  "modified_by": "Administrator",
  "module": "Agent",
  "name": "Agent Job",
+ "naming_rule": "UUID",
  "owner": "Administrator",
  "permissions": [
   {

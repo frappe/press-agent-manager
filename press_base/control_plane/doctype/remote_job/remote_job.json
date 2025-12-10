@@ -1,25 +1,98 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "autoname": "UUID",
  "creation": "2025-12-10 10:24:34.495874",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "section_break_tbud"
+  "job_type",
+  "status",
+  "column_break_uilj",
+  "start",
+  "end",
+  "duration",
+  "section_break_zxlv",
+  "data",
+  "output",
+  "error",
+  "traceback"
  ],
  "fields": [
   {
-   "fieldname": "section_break_tbud",
+   "fieldname": "job_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Job Type",
+   "options": "Remote Job Type",
+   "reqd": 1,
+   "search_index": 1,
+   "set_only_once": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Queued\nPending\nRunning\nSuccess\nFailure\nRejected",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_uilj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start",
+   "fieldtype": "Datetime",
+   "label": "Start",
+   "read_only": 1
+  },
+  {
+   "fieldname": "end",
+   "fieldtype": "Datetime",
+   "label": "End",
+   "read_only": 1
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Time",
+   "label": "Duration",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_zxlv",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Long Text",
+   "label": "Data"
+  },
+  {
+   "fieldname": "output",
+   "fieldtype": "Long Text",
+   "label": "Output"
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error"
+  },
+  {
+   "fieldname": "traceback",
+   "fieldtype": "Long Text",
+   "label": "Traceback"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-10 10:24:34.495874",
+ "modified": "2025-12-11 02:10:47.293956",
  "modified_by": "Administrator",
  "module": "Control Plane",
  "name": "Remote Job",
+ "naming_rule": "UUID",
  "owner": "Administrator",
  "permissions": [
   {

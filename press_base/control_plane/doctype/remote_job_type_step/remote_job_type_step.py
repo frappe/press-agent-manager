@@ -5,7 +5,7 @@
 from frappe.model.document import Document
 
 
-class RemoteJob(Document):
+class RemoteJobTypeStep(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -14,15 +14,10 @@ class RemoteJob(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		data: DF.LongText | None
-		duration: DF.Time | None
-		end: DF.Datetime | None
-		error: DF.SmallText | None
-		job_type: DF.Link
-		output: DF.LongText | None
-		start: DF.Datetime | None
-		status: DF.Literal["Queued", "Pending", "Running", "Success", "Failure", "Rejected"]
-		traceback: DF.LongText | None
+		parent: DF.Data
+		parentfield: DF.Data
+		parenttype: DF.Data
+		step_name: DF.Data
 	# end: auto-generated types
 
 	pass
