@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-12-10 21:34:41.577612",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_ilcy",
+  "registered_agent_id",
+  "column_break_xpbv",
+  "admin_user",
+  "controlplane_config_section",
+  "controlplane_scheme",
+  "column_break_opxn",
+  "controlplane_host",
+  "controlplane_api_key",
+  "column_break_kaex",
+  "controlplane_port",
+  "controlplane_api_secret"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_ilcy",
+   "fieldtype": "Section Break",
+   "label": "Agent Config"
+  },
+  {
+   "fieldname": "registered_agent_id",
+   "fieldtype": "Data",
+   "label": "Registered ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_xpbv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "controlplane_config_section",
+   "fieldtype": "Section Break",
+   "label": "Controlplane Config"
+  },
+  {
+   "fieldname": "controlplane_scheme",
+   "fieldtype": "Select",
+   "label": "Scheme",
+   "options": "http\nhttps",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_opxn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "controlplane_host",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Host",
+   "reqd": 1
+  },
+  {
+   "fieldname": "controlplane_api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_kaex",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "controlplane_port",
+   "fieldtype": "Int",
+   "label": "Port",
+   "reqd": 1
+  },
+  {
+   "fieldname": "controlplane_api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret",
+   "reqd": 1
+  },
+  {
+   "fieldname": "admin_user",
+   "fieldtype": "Link",
+   "label": "Admin User",
+   "options": "User",
+   "read_only": 1,
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-12-11 01:01:26.244158",
+ "modified_by": "Administrator",
+ "module": "Agent",
+ "name": "Agent Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

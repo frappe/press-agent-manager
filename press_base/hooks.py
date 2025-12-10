@@ -161,6 +161,17 @@ app_license = "agpl-3.0"
 # 	],
 # }
 
+fixtures = [
+	{
+		"dt": "Role",
+		"filters": {
+			"role_name": [
+				"in",
+				["Agent Admin", "Agent Resource Owner"],
+			]
+		},
+	},
+]
 # Testing
 # -------
 

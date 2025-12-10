@@ -1,0 +1,132 @@
+{
+ "actions": [],
+ "autoname": "format:agent-{#######}",
+ "creation": "2025-12-10 22:19:47.630139",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_pjxv",
+  "enabled",
+  "column_break_sfei",
+  "user",
+  "host_info_section",
+  "scheme",
+  "column_break_uaqq",
+  "host",
+  "column_break_wfiz",
+  "port",
+  "admin_user_authentication_section",
+  "admin_user_api_key",
+  "column_break_raus",
+  "admin_user_api_secret"
+ ],
+ "fields": [
+  {
+   "fieldname": "host",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Host",
+   "reqd": 1
+  },
+  {
+   "fieldname": "host_info_section",
+   "fieldtype": "Section Break",
+   "label": "Host Info"
+  },
+  {
+   "default": "http",
+   "fieldname": "scheme",
+   "fieldtype": "Select",
+   "label": "Scheme",
+   "options": "http\nhttps",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_uaqq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_wfiz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "port",
+   "fieldtype": "Int",
+   "label": "Port",
+   "reqd": 1
+  },
+  {
+   "fieldname": "admin_user_api_key",
+   "fieldtype": "Data",
+   "label": "API Key"
+  },
+  {
+   "fieldname": "column_break_raus",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "admin_user_api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret"
+  },
+  {
+   "description": "Authentication information used for calling the agent\u2019s API",
+   "fieldname": "admin_user_authentication_section",
+   "fieldtype": "Section Break",
+   "label": "Admin User Authentication"
+  },
+  {
+   "fieldname": "section_break_pjxv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_sfei",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-11 01:06:59.064531",
+ "modified_by": "Administrator",
+ "module": "Control Plane",
+ "name": "Agent",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

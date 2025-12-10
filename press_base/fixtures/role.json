@@ -1,0 +1,28 @@
+[
+ {
+  "desk_access": 0,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-12-10 21:32:36.895043",
+  "name": "Agent Admin",
+  "restrict_to_domain": null,
+  "role_name": "Agent Admin",
+  "two_factor_auth": 0
+ },
+ {
+  "desk_access": 0,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Role",
+  "home_page": null,
+  "is_custom": 0,
+  "modified": "2025-12-11 00:19:03.388597",
+  "name": "Agent Resource Owner",
+  "restrict_to_domain": null,
+  "role_name": "Agent Resource Owner",
+  "two_factor_auth": 0
+ }
+]
