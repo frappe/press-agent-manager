@@ -3,7 +3,7 @@ import re
 import types
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Literal, get_origin, get_type_hints
+from typing import Any, Literal, get_args, get_origin, get_type_hints
 
 import frappe
 from frappe.utils import orjson_dumps
@@ -22,7 +22,7 @@ class RouteMeta:
 	allow_guest: bool
 	func: Callable
 	payload_type: Any | None
-	is_pydantic: bool
+	payload_info: tuple[bool, bool, Any | None]  # (is_pydantic, is_list, item_type)
 	include_in_docs: bool = True
 	tag: str | None = None
 
@@ -267,7 +267,7 @@ def _request(router: Router, path: str, methods: list[str], allow_guest: bool, i
 	_validate_http_methods(methods)
 
 	def decorator(fn):
-		payload_annotation, is_pydantic, _, params = _resolve_payload_annotation(fn)
+		payload_annotation, payload_info, _, params = _resolve_payload_annotation(fn)
 		has_payload = payload_annotation is not None
 
 		accepts_var_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
@@ -298,12 +298,12 @@ def _request(router: Router, path: str, methods: list[str], allow_guest: bool, i
 
 					if raw is not None and payload_annotation:
 						converted = _validate_and_convert_payload(
-							raw, payload_annotation, is_pydantic, fn.__name__
+							raw, payload_annotation, payload_info, fn.__name__
 						)
 
 						if converted is None:
 							error_msg = f"Invalid payload format for {fn.__name__}"
-							if is_pydantic:
+							if payload_info[0]:  # is_pydantic
 								error_msg += f": expected {payload_annotation.__name__} model"
 							else:
 								error_msg += f": expected {payload_annotation.__name__}"
@@ -345,7 +345,7 @@ def _request(router: Router, path: str, methods: list[str], allow_guest: bool, i
 					allow_guest=allow_guest,
 					func=fn,
 					payload_type=payload_annotation,
-					is_pydantic=is_pydantic,
+					payload_info=payload_info,
 					include_in_docs=include_in_docs,
 					tag=router.name,
 				)
@@ -368,12 +368,14 @@ def _validate_http_methods(methods: list[str]) -> None:
 			raise ValueError(f"Invalid HTTP method: {method}")
 
 
-def _resolve_payload_annotation(fn: Callable) -> tuple[Any | None, bool, inspect.Signature, Any]:
+def _resolve_payload_annotation(
+	fn: Callable,
+) -> tuple[Any | None, tuple[bool, bool, Any | None], inspect.Signature, Any]:
 	sig = inspect.signature(fn)
 	params = sig.parameters
 	param = params.get("payload")
 	if not param:
-		return None, False, sig, params
+		return None, (False, False, None), sig, params
 
 	try:
 		hints = get_type_hints(fn)
@@ -388,7 +390,22 @@ def _resolve_payload_annotation(fn: Callable) -> tuple[Any | None, bool, inspect
 			print(f"payload parameter without type annotation in {fn.__name__}")
 		raise frappe.ValidationError("bad request")
 
-	if isinstance(annotation, types.UnionType) or get_origin(annotation) is not None:
+	# Check if it's a generic type (like list[Something])
+	origin = get_origin(annotation)
+
+	if origin is list:
+		args = get_args(annotation)
+		if args:
+			item_type = args[0]
+			# Check if the item type is a Pydantic model
+			if isinstance(item_type, type) and issubclass(item_type, PydanticBaseModel):
+				return list, (True, True, item_type), sig, params
+
+		# Plain list without type annotation or non-Pydantic type
+		return list, (False, True, None), sig, params
+
+	# Reject other generic types and unions
+	if isinstance(annotation, types.UnionType) or (origin is not None and origin is not list):
 		if frappe.conf.developer_mode:
 			print(f"unions/generics not allowed; got {annotation!r} in {fn.__name__}")
 		raise frappe.ValidationError("bad request")
@@ -400,10 +417,29 @@ def _resolve_payload_annotation(fn: Callable) -> tuple[Any | None, bool, inspect
 			print(f"invalid payload type {annotation!r} in {fn.__name__}")
 		raise frappe.ValidationError("bad request")
 
-	return annotation, is_pydantic, sig, params
+	return annotation, (is_pydantic, False, None), sig, params
 
 
-def _validate_and_convert_payload(raw: Any, annotation: Any, is_pydantic: bool, fn_name: str) -> Any:
+def _validate_and_convert_payload(
+	raw: Any, annotation: Any, payload_info: tuple[bool, bool, Any | None], fn_name: str
+) -> Any:
+	is_pydantic, is_list, item_type = payload_info
+
+	# Handle list[PydanticModel]
+	if is_list and is_pydantic and item_type:
+		if not isinstance(raw, list):
+			if frappe.conf.developer_mode:
+				print(f"invalid payload in {fn_name}: expected list, got {type(raw).__name__}")
+			return None
+
+		try:
+			return [item_type(**item) if isinstance(item, dict) else item for item in raw]
+		except (TypeError, PydanticValidationError) as e:
+			if frappe.conf.developer_mode:
+				print(f"invalid payload in {fn_name}: failed to parse list items: {e}")
+			return None
+
+	# Handle single Pydantic model
 	if is_pydantic:
 		if not isinstance(raw, dict):
 			if frappe.conf.developer_mode:
@@ -411,6 +447,7 @@ def _validate_and_convert_payload(raw: Any, annotation: Any, is_pydantic: bool, 
 			return None
 		return annotation(**raw)
 
+	# Handle plain list or dict
 	if not isinstance(raw, annotation):
 		if frappe.conf.developer_mode:
 			print(f"invalid payload in {fn_name}: expected {annotation.__name__}, got {type(raw).__name__}")
@@ -512,17 +549,29 @@ TYPE_MAP = {
 DEFAULT_TYPE = "string"
 
 
-def _schema_for_payload(payload_type: Any, is_pydantic: bool, components_schemas: dict) -> dict | None:
+def _schema_for_payload(
+	payload_type: Any, payload_info: tuple[bool, bool, Any | None], components_schemas: dict
+) -> dict | None:
 	if not payload_type:
 		return None
 
+	is_pydantic, is_list, item_type = payload_info
+
+	# Handle list[PydanticModel]
+	if is_list and is_pydantic and item_type:
+		_add_pydantic_schema(item_type, components_schemas)
+		return {"type": "array", "items": {"$ref": f"#/components/schemas/{item_type.__name__}"}}
+
+	# Handle single Pydantic model
 	if is_pydantic:
 		_add_pydantic_schema(payload_type, components_schemas)
 		return {"$ref": f"#/components/schemas/{payload_type.__name__}"}
 
+	# Handle dict
 	if payload_type is dict:
 		return {"type": "object", "additionalProperties": True}
 
+	# Handle plain list
 	if payload_type is list:
 		return {"type": "array", "items": {}}
 
@@ -670,10 +719,11 @@ def _build_operation(
 	if path_params:
 		op["parameters"] = list(path_params)
 
-	schema = _schema_for_payload(route_meta.payload_type, route_meta.is_pydantic, components_schemas)
+	schema = _schema_for_payload(route_meta.payload_type, route_meta.payload_info, components_schemas)
 
 	if schema and method == "get":
-		qp = _query_params_from_schema(route_meta.payload_type, route_meta.is_pydantic)
+		is_pydantic, is_list, _ = route_meta.payload_info
+		qp = _query_params_from_schema(route_meta.payload_type, is_pydantic and not is_list)
 		if qp:
 			op.setdefault("parameters", []).extend(qp)
 	elif schema:
