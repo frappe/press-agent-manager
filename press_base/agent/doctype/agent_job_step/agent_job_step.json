@@ -34,8 +34,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "Pending\nRunning\nSuccess\nFailure\nSkipped",
-   "read_only": 1,
+   "options": "Pending\nRunning\nSuccess\nFailure",
    "reqd": 1,
    "search_index": 1
   },
@@ -57,7 +56,8 @@
    "fieldname": "start",
    "fieldtype": "Datetime",
    "label": "Start",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "end",
@@ -104,7 +104,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-11 01:53:28.703092",
+ "modified": "2025-12-12 04:11:52.384368",
  "modified_by": "Administrator",
  "module": "Agent",
  "name": "Agent Job Step",

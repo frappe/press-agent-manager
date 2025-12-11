@@ -1,13 +1,22 @@
+from __future__ import annotations
+
+from datetime import datetime
+from enum import Enum
+from typing import TYPE_CHECKING
+
 import frappe
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
 from press_base.control_plane.api.control_plane import control_plane_router
 from press_base.press_base import api_docs, jsonify
 
+if TYPE_CHECKING:
+	from press_base.control_plane.doctype.remote_job.remote_job import RemoteJob
+
 remote_jobs_router = control_plane_router.subrouter(
 	"remote-jobs",
 	name="Remote Jobs",
-	description="Following APIs will be used fetch and manage remote jobs. This communication will be between Control Plane and Agents.",
+	description="Following APIs will be used to fetch and manage remote jobs. Agent will use these APIs to communicate with Control Plane.",
 )
 
 
@@ -49,7 +58,7 @@ class JobAckowledgement(BaseModel):
 	rejection_reason: str | None = None
 
 
-@remote_jobs_router.put()
+@remote_jobs_router.post("acknowledge")
 def acknowledge_jobs(payload: list[JobAckowledgement]):
 	"""
 	Acknowledge multiple jobs
@@ -72,3 +81,74 @@ def acknowledge_jobs(payload: list[JobAckowledgement]):
 			frappe.db.set_value("Remote Job", job.name, "rejection_reason", job.rejection_reason or "Unknown")
 
 	return None
+
+
+class RemoteJobStatus(str, Enum):
+	QUEUED = "Queued"
+	PENDING = "Pending"
+	RUNNING = "Running"
+	SUCCESS = "Success"
+	FAILURE = "Failure"
+
+
+class RemoteJobStepStatus(str, Enum):
+	PENDING = "Pending"
+	RUNNING = "Running"
+	SUCCESS = "Success"
+	FAILURE = "Failure"
+
+
+class RemoteJobSyncDetails(BaseModel):
+	status: RemoteJobStatus
+	start: datetime | str | None = None
+	end: datetime | str | None = None
+	data: str | None = None
+	output: str | None = None
+	error: str | None = None
+	traceback: str | None = None
+
+
+class RemoteJobStepSyncDetails(BaseModel):
+	step_name: str
+	status: RemoteJobStepStatus
+	start: datetime | str | None = None
+	end: datetime | str | None = None
+	output: str | None = None
+	error: str | None = None
+	traceback: str | None = None
+
+
+@remote_jobs_router.post("<string:job_id>/sync-job")
+def sync_job(job_id: str, payload: RemoteJobSyncDetails):
+	"""
+	Sync job details partially
+	"""
+
+	job: RemoteJob = frappe.get_doc("Remote Job", job_id, for_update=True)  # type: ignore
+	job.sync_job(
+		payload.status.value,
+		payload.start,
+		payload.end,
+		payload.data,
+		payload.output,
+		payload.error,
+		payload.traceback,
+	)
+
+
+@remote_jobs_router.post("<string:job_id>/sync-step")
+def sync_job_step(job_id: str, payload: RemoteJobStepSyncDetails):
+	"""
+	Sync job step details
+	"""
+
+	job: RemoteJob = frappe.get_doc("Remote Job", job_id, for_update=True)  # type: ignore
+	job.sync_job_step(
+		payload.step_name,
+		payload.status.value,
+		payload.start,
+		payload.end,
+		payload.output,
+		payload.error,
+		payload.traceback,
+	)

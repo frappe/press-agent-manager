@@ -5,7 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "job_type",
+  "step_name",
   "status",
   "remote_job",
   "column_break_bixd",
@@ -20,20 +20,13 @@
  ],
  "fields": [
   {
-   "fieldname": "job_type",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Job Type",
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
    "default": "Pending",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "Pending\nRunning\nSuccess\nFailure",
+   "options": "Pending\nRunning\nSuccess\nFailure\nSkipped",
+   "read_only": 1,
    "reqd": 1,
    "search_index": 1
   },
@@ -44,17 +37,21 @@
   {
    "fieldname": "start",
    "fieldtype": "Datetime",
-   "label": "Start"
+   "label": "Start",
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "end",
    "fieldtype": "Datetime",
-   "label": "End"
+   "label": "End",
+   "read_only": 1
   },
   {
    "fieldname": "duration",
    "fieldtype": "Time",
-   "label": "Duration"
+   "label": "Duration",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_lfdi",
@@ -63,28 +60,42 @@
   {
    "fieldname": "data",
    "fieldtype": "Long Text",
-   "label": "Data"
+   "label": "Data",
+   "read_only": 1
   },
   {
    "fieldname": "output",
    "fieldtype": "Long Text",
-   "label": "Output"
+   "label": "Output",
+   "read_only": 1
   },
   {
    "fieldname": "error",
    "fieldtype": "Small Text",
-   "label": "Error"
+   "label": "Error",
+   "read_only": 1
   },
   {
    "fieldname": "traceback",
    "fieldtype": "Long Text",
-   "label": "Traceback"
+   "label": "Traceback",
+   "read_only": 1
   },
   {
    "fieldname": "remote_job",
    "fieldtype": "Link",
    "label": "Remote Job",
    "options": "Remote Job",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "step_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Step Name",
+   "read_only": 1,
    "reqd": 1,
    "search_index": 1
   }
@@ -92,7 +103,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-11 01:54:29.709651",
+ "modified": "2025-12-12 04:12:24.572336",
  "modified_by": "Administrator",
  "module": "Control Plane",
  "name": "Remote Job Step",

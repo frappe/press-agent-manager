@@ -4,6 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
+from press_base.agent.realtime import send_realtime_event_to_controlplane
+
 
 class AgentJobStep(Document):
 	# begin: auto-generated types
@@ -21,13 +23,31 @@ class AgentJobStep(Document):
 		error: DF.SmallText | None
 		output: DF.Text | None
 		start: DF.Datetime | None
-		status: DF.Literal["Pending", "Running", "Success", "Failure", "Skipped"]
+		status: DF.Literal["Pending", "Running", "Success", "Failure"]
 		step_name: DF.Data
 		traceback: DF.Text | None
 	# end: auto-generated types
 
-	pass
+	def on_update(self):
+		self.notify_controlplane()
 
+	def notify_controlplane(self):
+		if self.is_new():
+			return
 
-def on_doctype_update():
-	frappe.db.add_index("Agent Job Step", ["creation"])
+		send_realtime_event_to_controlplane(
+			"remote_job.sync_step",
+			{
+				"job_id": self.agent_job,
+				"data": {
+					"step_name": self.step_name,
+					"status": self.status,
+					"start": self.start,
+					"end": self.end,
+					"output": self.output,
+					"data": self.data,
+					"error": self.error,
+					"traceback": self.traceback,
+				},
+			},
+		)

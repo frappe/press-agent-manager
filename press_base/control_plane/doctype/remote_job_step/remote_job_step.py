@@ -18,11 +18,11 @@ class RemoteJobStep(Document):
 		duration: DF.Time | None
 		end: DF.Datetime | None
 		error: DF.SmallText | None
-		job_type: DF.Data
 		output: DF.LongText | None
 		remote_job: DF.Link
 		start: DF.Datetime | None
-		status: DF.Literal["Pending", "Running", "Success", "Failure"]
+		status: DF.Literal["Pending", "Running", "Success", "Failure", "Skipped"]
+		step_name: DF.Data
 		traceback: DF.LongText | None
 	# end: auto-generated types
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import contextlib
+import json
 import traceback
-from collections.abc import Callable
-from functools import wraps
 from time import sleep
 from typing import TYPE_CHECKING, TypeVar
 
@@ -10,6 +10,7 @@ import click
 import frappe
 import socketio
 from frappe.commands import get_site, pass_context
+from frappe.utils.background_jobs import get_redis_connection_without_auth
 from frappe.utils.bench_helper import CliCtxObj
 
 from press_base.agent.control_plane import poll_queued_jobs
@@ -51,7 +52,10 @@ def listen_for_socketio_events() -> None:
 
 	site = frappe.local.site
 	sio = socketio.Client()
+	redis = get_redis_connection_without_auth()
+	pubsub = redis.pubsub()
 
+	# Setup event handlers for incoming events from controlplane
 	for event, config in EVENT_HANDLERS.items():
 		handler = in_site_context(site, config["handler"])
 		if debounce_wait := config.get("debounce"):
@@ -68,7 +72,29 @@ def listen_for_socketio_events() -> None:
 		retry=True,
 	)
 
+	# Listen for events to send to controlplane
+	def send_events_to_sio(message: dict):
+		try:
+			data = json.loads(message["data"])
+			sio.emit(
+				data["event"],
+				data["message"],
+				namespace=settings.socketio_namespace,
+			)
+		except Exception:
+			frappe.log_error("Failed to send realtime event to controlplane")
+
+	pubsub.subscribe(**{f"outgoing_events_to_controlplane||{frappe.local.site}": send_events_to_sio})
+
+	thread = None
 	try:
+		thread = pubsub.run_in_thread(sleep_time=0.001)
 		sio.wait()
 	finally:
-		sio.disconnect()
+		with contextlib.suppress(Exception):
+			if thread:
+				thread.stop()
+				thread.join()
+
+		with contextlib.suppress(Exception):
+			sio.disconnect()

@@ -24,6 +24,7 @@ build-backend = "flit_core.buildapi"
 [tool.ruff]
 line-length = 110
 target-version = "py310"
+select = ["FA100"]
 
 [tool.ruff.lint]
 select = [

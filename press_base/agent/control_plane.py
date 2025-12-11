@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from contextlib import suppress
 from functools import cached_property
 from typing import TYPE_CHECKING
 
 import frappe
+import redis
 
 from press_base.control_plane.api.remote_jobs import JobAckowledgement
 from press_base.press_base.utils import pydantic_serialize
@@ -59,7 +61,7 @@ class ControlPlane:
 		Acknowledge multiple jobs
 		"""
 		self.settings.send_request_to_controlplane(
-			"PUT", "/api/control-plane/remote-jobs", data=pydantic_serialize(jobs)
+			"POST", "/api/control-plane/remote-jobs/acknowledge", data=pydantic_serialize(jobs)
 		)
 
 	@cached_property

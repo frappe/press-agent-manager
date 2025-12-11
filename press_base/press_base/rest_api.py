@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, get_args, get_origin, get_type_hints
 
 import frappe
+import orjson
 from frappe.utils import orjson_dumps
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import ValidationError as PydanticValidationError
@@ -288,10 +289,14 @@ def _request(router: Router, path: str, methods: list[str], allow_guest: bool, i
 
 				if has_payload:
 					raw = None
-					if "data" in frappe.local.form_dict:
-						raw = frappe.local.form_dict["data"]
-					else:
-						raw = frappe.local.form_dict
+					request_data = frappe.local.request.get_data(as_text=True)
+					if request_data and frappe.local.request.is_json:
+						try:
+							raw = orjson.loads(request_data)
+						except orjson.JSONDecodeError:
+							raise HTTPException(
+								response=jsonify({"error": "Invalid JSON payload"}, status_code=400)
+							)
 
 					if not raw:
 						raw = [] if payload_annotation is list else {}

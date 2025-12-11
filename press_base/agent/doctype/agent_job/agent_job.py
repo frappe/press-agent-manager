@@ -4,6 +4,8 @@
 import frappe
 from frappe.model.document import Document
 
+from press_base.agent.realtime import send_realtime_event_to_controlplane
+
 
 class AgentJob(Document):
 	# begin: auto-generated types
@@ -29,5 +31,31 @@ class AgentJob(Document):
 	def rq_job_id(self) -> str:
 		return f"agent_job||{self.name}"
 
+	def on_update(self):
+		self.notify_controlplane()
+
 	def on_trash(self):
 		frappe.db.delete("Agent Job Step", {"agent_job": self.name})
+
+	def notify_controlplane(self):
+		if self.is_new():
+			return
+
+		if self.status in ["Success", "Failure"]:
+			return
+
+		send_realtime_event_to_controlplane(
+			"remote_job.sync_job",
+			{
+				"job_id": self.name,
+				"data": {
+					"status": self.status,
+					"start": self.start,
+					"end": self.end,
+					"output": self.output,
+					"data": self.data,
+					"error": self.error,
+					"traceback": self.traceback,
+				},
+			},
+		)
