@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import requests
@@ -67,7 +67,7 @@ class AgentSettings(Document):
 		self.save()
 
 	# Helper Methods
-	def send_request_to_controlplane(self, method, endpoint, data=None):
+	def send_request_to_controlplane(self, method: str, endpoint: str, data: Any = None):
 		if not endpoint.startswith("/"):
 			endpoint = "/" + endpoint
 

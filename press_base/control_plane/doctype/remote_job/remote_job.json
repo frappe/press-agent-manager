@@ -6,12 +6,15 @@
  "engine": "InnoDB",
  "field_order": [
   "job_type",
+  "agent",
   "status",
+  "rejection_reason",
   "column_break_uilj",
   "start",
   "end",
   "duration",
   "section_break_zxlv",
+  "request_data",
   "data",
   "output",
   "error",
@@ -29,7 +32,7 @@
    "set_only_once": 1
   },
   {
-   "default": "Pending",
+   "default": "Queued",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -67,28 +70,52 @@
   {
    "fieldname": "data",
    "fieldtype": "Long Text",
-   "label": "Data"
+   "label": "Data",
+   "read_only": 1
   },
   {
    "fieldname": "output",
    "fieldtype": "Long Text",
-   "label": "Output"
+   "label": "Output",
+   "read_only": 1
   },
   {
    "fieldname": "error",
    "fieldtype": "Small Text",
-   "label": "Error"
+   "label": "Error",
+   "read_only": 1
   },
   {
    "fieldname": "traceback",
    "fieldtype": "Long Text",
-   "label": "Traceback"
+   "label": "Traceback",
+   "read_only": 1
+  },
+  {
+   "fieldname": "agent",
+   "fieldtype": "Link",
+   "label": "Agent",
+   "options": "Agent",
+   "search_index": 1
+  },
+  {
+   "default": "{}",
+   "fieldname": "request_data",
+   "fieldtype": "JSON",
+   "label": "Request Data",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "rejection_reason",
+   "fieldtype": "Data",
+   "label": "Rejection Reason",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-11 02:10:47.293956",
+ "modified": "2025-12-11 12:40:52.833093",
  "modified_by": "Administrator",
  "module": "Control Plane",
  "name": "Remote Job",
@@ -104,6 +131,19 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Agent Resource Owner",
+   "select": 1,
    "share": 1,
    "write": 1
   }

@@ -59,6 +59,7 @@ The output will be logged in the Agent Job Step log.
 def enqueue(
 	job_type: str,
 	method: Callable,
+	agent_job_name: str | None = None,
 	queue: str = "default",
 	timeout: int | None = None,
 	*,
@@ -69,9 +70,15 @@ def enqueue(
 	if not job_type:
 		raise ValueError("Job type is required")
 
+	# If agent job exists, no need to enqueue
+	if agent_job_name and frappe.db.exists("Agent Job", agent_job_name):
+		return frappe.get_doc("Agent Job", agent_job_name)  # type: ignore
+
 	agent_job: AgentJob = frappe.new_doc("Agent Job")  # type: ignore
 	agent_job.job_type = job_type
 	agent_job.status = "Pending"
+	agent_job.name = agent_job_name
+	agent_job.flags.name_set = agent_job_name is not None
 	agent_job.insert()
 
 	# remove agent_job_name and method_to_run from kwargs
