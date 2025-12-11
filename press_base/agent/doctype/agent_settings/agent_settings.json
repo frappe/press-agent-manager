@@ -6,16 +6,21 @@
  "engine": "InnoDB",
  "field_order": [
   "section_break_ilcy",
-  "registered_agent_id",
+  "enabled",
   "column_break_xpbv",
+  "registered_agent_id",
+  "column_break_eecz",
   "admin_user",
   "controlplane_config_section",
   "controlplane_scheme",
+  "socketio_scheme",
   "column_break_opxn",
   "controlplane_host",
+  "socketio_namespace",
   "controlplane_api_key",
   "column_break_kaex",
   "controlplane_port",
+  "socketio_port",
   "controlplane_api_secret"
  ],
  "fields": [
@@ -28,7 +33,7 @@
    "fieldname": "registered_agent_id",
    "fieldtype": "Data",
    "label": "Registered ID",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.enabled"
   },
   {
    "fieldname": "column_break_xpbv",
@@ -40,11 +45,12 @@
    "label": "Controlplane Config"
   },
   {
+   "default": "http",
    "fieldname": "controlplane_scheme",
    "fieldtype": "Select",
    "label": "Scheme",
-   "options": "http\nhttps",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.enabled",
+   "options": "http\nhttps"
   },
   {
    "fieldname": "column_break_opxn",
@@ -55,7 +61,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Host",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.enabled"
   },
   {
    "fieldname": "controlplane_api_key",
@@ -71,28 +77,58 @@
    "fieldname": "controlplane_port",
    "fieldtype": "Int",
    "label": "Port",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.enabled"
   },
   {
    "fieldname": "controlplane_api_secret",
    "fieldtype": "Password",
    "label": "API Secret",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.enabled"
   },
   {
    "fieldname": "admin_user",
    "fieldtype": "Link",
    "label": "Admin User",
+   "mandatory_depends_on": "eval: doc.enabled",
    "options": "User",
-   "read_only": 1,
-   "reqd": 1
+   "read_only": 1
+  },
+  {
+   "default": "http",
+   "fieldname": "socketio_scheme",
+   "fieldtype": "Select",
+   "label": "SocketIO Scheme",
+   "mandatory_depends_on": "eval: doc.enabled",
+   "options": "http\nhttps"
+  },
+  {
+   "fieldname": "socketio_port",
+   "fieldtype": "Int",
+   "label": "SocketIO Port",
+   "mandatory_depends_on": "eval: doc.enabled"
+  },
+  {
+   "fieldname": "socketio_namespace",
+   "fieldtype": "Data",
+   "label": "SocketIO Namespace",
+   "mandatory_depends_on": "eval: doc.enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_eecz",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-12-11 01:01:26.244158",
+ "modified": "2025-12-11 22:20:23.928282",
  "modified_by": "Administrator",
  "module": "Agent",
  "name": "Agent Settings",

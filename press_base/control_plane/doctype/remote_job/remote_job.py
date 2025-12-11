@@ -1,7 +1,7 @@
 # Copyright (c) 2025, Frappe and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
 from frappe.model.document import Document
 
 from press_base.control_plane.utils import get_permission_query_conditions_for_doctype
@@ -30,7 +30,23 @@ class RemoteJob(Document):
 		traceback: DF.LongText | None
 	# end: auto-generated types
 
-	pass
+	def on_update(self):
+		if not self.is_new() and self.has_value_changed("status") and self.status == "Queued":
+			self._notify_agent_about_new_job()
+
+	def after_insert(self):
+		self._notify_agent_about_new_job()
+
+	def _notify_agent_about_new_job(self):
+		if not self.agent:
+			# TODO: broadcast to everyone
+			return
+
+		frappe.publish_realtime(
+			"remote_job.new",
+			user=frappe.db.get_value("Agent", self.agent, "user", cache=True),  # type: ignore
+			after_commit=True,
+		)
 
 
 get_permission_query_conditions = get_permission_query_conditions_for_doctype("Remote Job")

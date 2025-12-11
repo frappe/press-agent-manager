@@ -21,18 +21,26 @@ class AgentSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		admin_user: DF.Link
+		admin_user: DF.Link | None
 		controlplane_api_key: DF.Data
-		controlplane_api_secret: DF.Password
-		controlplane_host: DF.Data
+		controlplane_api_secret: DF.Password | None
+		controlplane_host: DF.Data | None
 		controlplane_port: DF.Int
 		controlplane_scheme: DF.Literal["http", "https"]
-		registered_agent_id: DF.Data
+		enabled: DF.Check
+		registered_agent_id: DF.Data | None
+		socketio_namespace: DF.Data | None
+		socketio_port: DF.Int
+		socketio_scheme: DF.Literal["http", "https"]
 	# end: auto-generated types
 
 	@property
 	def controlplane_base_url(self):
 		return f"{self.controlplane_scheme}://{self.controlplane_host}:{self.controlplane_port}"
+
+	@property
+	def controlplane_socketio_url(self):
+		return f"{self.socketio_scheme}://{self.controlplane_host}:{self.socketio_port}"
 
 	@frappe.whitelist()
 	def ping_controlplane(self):

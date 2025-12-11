@@ -71,5 +71,5 @@ class ControlPlane:
 		}
 
 
-def poll_queued_jobs():
+def poll_queued_jobs(*args, **kwargs):
 	frappe.enqueue(ControlPlane().poll_queued_jobs, job_id="poll_queued_jobs", timeout=600, deduplicate=True)

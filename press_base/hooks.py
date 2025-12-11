@@ -143,7 +143,11 @@ permission_query_conditions = {
 # Scheduled Tasks
 # ---------------
 
-scheduler_events = {"cron": {"* * * * *": "press_base.agent.control_plane.poll_queued_jobs"}}
+scheduler_events = {
+	"cron": {
+		"*/5 * * * *": "press_base.agent.control_plane.poll_queued_jobs",
+	}
+}
 
 fixtures = [
 	{
