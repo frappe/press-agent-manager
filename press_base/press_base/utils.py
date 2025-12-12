@@ -11,7 +11,7 @@ def pydantic_serialize(data: Any) -> Any:
 	into a fully JSON-serializable object using Pydantic's serialization engine.
 	"""
 	if isinstance(data, BaseModel):
-		return data.model_dump()
+		return data.model_dump(mode="json")
 
 	# Lists, dicts, tuples, sets, etc.
 	adapter = TypeAdapter(type(data))

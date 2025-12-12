@@ -38,6 +38,7 @@
    "in_list_view": 1,
    "label": "Status",
    "options": "Queued\nPending\nRunning\nSuccess\nFailure\nRejected",
+   "read_only": 1,
    "reqd": 1,
    "search_index": 1
   },
@@ -114,8 +115,13 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-12-11 12:40:52.833093",
+ "links": [
+  {
+   "link_doctype": "Remote Job Step",
+   "link_fieldname": "remote_job"
+  }
+ ],
+ "modified": "2025-12-12 11:44:44.535481",
  "modified_by": "Administrator",
  "module": "Control Plane",
  "name": "Remote Job",

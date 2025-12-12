@@ -7,6 +7,8 @@
  "field_order": [
   "job_type",
   "status",
+  "is_submitted_to_controlplane",
+  "submission_failure_count",
   "column_break_xarl",
   "start",
   "end",
@@ -88,6 +90,18 @@
    "fieldtype": "Text",
    "label": "Output",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_submitted_to_controlplane",
+   "fieldtype": "Check",
+   "label": "Is Submitted to Controlplane"
+  },
+  {
+   "fieldname": "submission_failure_count",
+   "fieldtype": "Int",
+   "label": "Submission Failure Count",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -98,7 +112,7 @@
    "link_fieldname": "agent_job"
   }
  ],
- "modified": "2025-12-11 11:37:51.188512",
+ "modified": "2025-12-12 10:32:15.713775",
  "modified_by": "Administrator",
  "module": "Agent",
  "name": "Agent Job",

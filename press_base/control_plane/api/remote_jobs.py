@@ -113,6 +113,7 @@ class RemoteJobStepSyncDetails(BaseModel):
 	status: RemoteJobStepStatus
 	start: datetime | str | None = None
 	end: datetime | str | None = None
+	data: str | None = None
 	output: str | None = None
 	error: str | None = None
 	traceback: str | None = None
@@ -125,7 +126,7 @@ def sync_job(job_id: str, payload: RemoteJobSyncDetails):
 	"""
 
 	job: RemoteJob = frappe.get_doc("Remote Job", job_id, for_update=True)  # type: ignore
-	job.sync_job(
+	job.sync_info(
 		payload.status.value,
 		payload.start,
 		payload.end,
@@ -152,3 +153,38 @@ def sync_job_step(job_id: str, payload: RemoteJobStepSyncDetails):
 		payload.error,
 		payload.traceback,
 	)
+
+
+class RemoteJobCompletionDetails(RemoteJobSyncDetails):
+	steps: list[RemoteJobStepSyncDetails]
+
+
+@remote_jobs_router.post("<string:job_id>/finalize")
+def finalize_job(job_id: str, payload: RemoteJobCompletionDetails):
+	"""
+	Final sync for remote job.
+
+	This will be called when the job reaches the terminal state.
+	"""
+
+	job: RemoteJob = frappe.get_doc("Remote Job", job_id, for_update=True)  # type: ignore
+	job.sync_info(
+		payload.status.value,
+		payload.start,
+		payload.end,
+		payload.data,
+		payload.output,
+		payload.error,
+		payload.traceback,
+	)
+
+	for step in payload.steps:
+		job.sync_job_step(
+			step.step_name,
+			step.status.value,
+			step.start,
+			step.end,
+			step.output,
+			step.error,
+			step.traceback,
+		)

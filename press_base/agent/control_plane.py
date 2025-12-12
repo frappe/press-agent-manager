@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import frappe
 import redis
 
-from press_base.control_plane.api.remote_jobs import JobAckowledgement
+from press_base.control_plane.api.remote_jobs import JobAckowledgement, RemoteJobCompletionDetails
 from press_base.press_base.utils import pydantic_serialize
 
 if TYPE_CHECKING:
@@ -62,6 +62,14 @@ class ControlPlane:
 		"""
 		self.settings.send_request_to_controlplane(
 			"POST", "/api/control-plane/remote-jobs/acknowledge", data=pydantic_serialize(jobs)
+		)
+
+	def submit_job(self, job_id: str, data: RemoteJobCompletionDetails):
+		"""
+		Submit the job to controlplane
+		"""
+		self.settings.send_request_to_controlplane(
+			"POST", f"/api/control-plane/remote-jobs/{job_id}/finalize", data=pydantic_serialize(data)
 		)
 
 	@cached_property

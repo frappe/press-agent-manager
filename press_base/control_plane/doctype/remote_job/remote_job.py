@@ -42,10 +42,17 @@ class RemoteJob(Document):
 		if not self.is_new() and self.has_value_changed("status") and self.status == "Queued":
 			self._notify_agent_about_new_job()
 
+		if (
+			not self.is_new()
+			and (previous := self.get_doc_before_save())
+			and previous.status in ["Success", "Failure"]
+		):
+			frappe.throw("Job cannot be updated anymore as it is already completed")
+
 	def after_insert(self):
 		self._notify_agent_about_new_job()
 
-	def sync_job(
+	def sync_info(
 		self,
 		status: Literal["Queued", "Pending", "Running", "Success", "Failure", "Rejected"] = "Queued",
 		start: datetime | str | None = None,
@@ -55,6 +62,9 @@ class RemoteJob(Document):
 		error: str | None = None,
 		traceback: str | None = None,
 	):
+		if self.status in ["Success", "Failure"]:
+			frappe.throw("Job status cannot be updated as it is already completed")
+
 		self.status = status
 		self.start = start
 		self.end = end
@@ -76,9 +86,6 @@ class RemoteJob(Document):
 		traceback: str | None = None,
 	):
 		step_doc = self.get_job_step(step_name)
-		if not step_doc:
-			step_doc = self.get_job_step(step_name)
-
 		step_doc.status = status
 		step_doc.start = start
 		step_doc.end = end

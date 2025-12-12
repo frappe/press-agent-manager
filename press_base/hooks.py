@@ -146,6 +146,7 @@ permission_query_conditions = {
 scheduler_events = {
 	"cron": {
 		"*/5 * * * *": "press_base.agent.control_plane.poll_queued_jobs",
+		"* * * * *": "press_base.agent.doctype.agent_job.agent_job.submit_agent_jobs_to_controlplane",
 	}
 }
 
