@@ -18,7 +18,7 @@ def in_site_context(site: str, fn: Callable[..., T]) -> Callable[..., T]:
 				frappe.connect()
 				try:
 					result = fn(*args, **kwargs)
-					frappe.db.commit()
+					frappe.db.commit()  # nosemgrep
 					return result
 				except Exception:
 					frappe.db.rollback()

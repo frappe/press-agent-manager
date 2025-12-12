@@ -189,7 +189,7 @@ def step(title: str):
 					if current_output:
 						step.output = current_output
 						step.save()
-						frappe.db.commit()
+						frappe.db.commit()  # nosemgrep
 				except Exception as e:
 					frappe.log_error(f"Error flushing output: {e}")
 
@@ -201,7 +201,7 @@ def step(title: str):
 				step.status = "Running"
 				step.start = now_datetime()
 				step.save()
-				frappe.db.commit()
+				frappe.db.commit()  # nosemgrep
 
 				# capture stdout and stderr
 				with redirect_stdout(output_buffer), redirect_stderr(output_buffer):
@@ -227,7 +227,7 @@ def step(title: str):
 				step.end = now_datetime()
 				step.duration = int((step.end - step.start).total_seconds())  # type: ignore
 				step.save()
-				frappe.db.commit()
+				frappe.db.commit()  # nosemgrep
 
 				# Reset step context
 				agent_job_step_context.set(None)
@@ -256,7 +256,7 @@ def update_step_data(data: str, replace: bool = False):
 	if step:
 		step.data = data if replace else (step.data or "") + data
 		step.save()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 
 def update_job_data(data: str, replace: bool = False):
@@ -264,7 +264,7 @@ def update_job_data(data: str, replace: bool = False):
 		job = agent_job_context.get()
 		job.data = data if replace else (job.data or "") + data
 		job.save()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 
 def execute_agent_job(agent_job_name: str, method_to_run: Callable, **kwargs):
@@ -285,7 +285,7 @@ def execute_agent_job(agent_job_name: str, method_to_run: Callable, **kwargs):
 		agent_job.start = now_datetime()
 		agent_job.status = "Running"
 		agent_job.save()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 		# capture stdout and stderr
 		with redirect_stdout(output_buffer), redirect_stderr(output_buffer):
@@ -304,7 +304,7 @@ def execute_agent_job(agent_job_name: str, method_to_run: Callable, **kwargs):
 		agent_job.end = now_datetime()
 		agent_job.duration = int((agent_job.end - agent_job.start).total_seconds())  # type: ignore
 		agent_job.save()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 
 def _get_or_create_agent_step(job: AgentJob, step_name: str) -> AgentJobStep:
@@ -316,6 +316,6 @@ def _get_or_create_agent_step(job: AgentJob, step_name: str) -> AgentJobStep:
 		step.agent_job = job.name  # type: ignore
 		step.step_name = step_name
 		step.insert()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	return step

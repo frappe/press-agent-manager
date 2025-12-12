@@ -170,6 +170,6 @@ def submit_agent_jobs_to_controlplane():
 		try:
 			job_doc: AgentJob = frappe.get_doc("Agent Job", job)  # type: ignore
 			job_doc.submit_to_controlplane_in_background()
-			frappe.db.commit()
+			frappe.db.commit()  # nosemgrep
 		except Exception:
 			frappe.db.rollback()

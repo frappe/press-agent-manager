@@ -25,7 +25,7 @@ function press_base_event_handler(socket) {
 // Helper methods
 function send_request(
 	socket,
-	{ path, method = "GET", params = {}, json = null, headers = {}, ...rest },
+	{ path, method = "GET", params = {}, json = null, headers = {}, ...rest }
 ) {
 	const query = new URLSearchParams(params);
 	if (query.toString()) {
