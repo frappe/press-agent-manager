@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import add_to_date, now_datetime
 
 from press_base.agent.control_plane import ControlPlane
 from press_base.agent.realtime import send_realtime_event_to_controlplane
@@ -32,6 +33,7 @@ class AgentJob(Document):
 		start: DF.Datetime | None
 		status: DF.Literal["Pending", "Running", "Success", "Failure"]
 		submission_failure_count: DF.Int
+		submission_next_retry_at: DF.Datetime | None
 		traceback: DF.LongText | None
 		version_counter: DF.Int
 	# end: auto-generated types
@@ -51,6 +53,8 @@ class AgentJob(Document):
 
 	def submit_to_controlplane_on_reaching_termination_state(self):
 		if self.has_value_changed("status") and self.status in ["Success", "Failure"]:
+			self.submission_next_retry_at = self.submission_next_retry_at or now_datetime()
+			self.db_update()
 			self.submit_to_controlplane_in_background()
 
 	def submit_to_controlplane_in_background(self):
@@ -113,13 +117,15 @@ class AgentJob(Document):
 				reference_name=self.name,
 			)
 
-			frappe.db.set_value(
-				self.doctype,
-				self.name,
-				"submission_failure_count",
-				self.submission_failure_count + 1,
-				update_modified=False,
+			self.submission_failure_count = self.submission_failure_count + 1
+			if not self.submission_next_retry_at:
+				self.submission_next_retry_at = now_datetime()
+
+			# Delay the execution by 30s
+			self.submission_next_retry_at = add_to_date(
+				self.submission_next_retry_at, seconds=30, as_datetime=True
 			)
+			self.db_update()
 
 	def notify_controlplane(self):
 		if self.is_new():
@@ -152,7 +158,11 @@ class AgentJob(Document):
 def submit_agent_jobs_to_controlplane():
 	jobs = frappe.get_all(
 		"Agent Job",
-		filters={"is_submitted_to_controlplane": False, "status": ["in", ["Success", "Failure"]]},
+		filters={
+			"is_submitted_to_controlplane": False,
+			"status": ["in", ["Success", "Failure"]],
+			"submission_next_retry_at": ["<", now_datetime()],
+		},
 		pluck="name",
 		limit_page_length=50,
 	)

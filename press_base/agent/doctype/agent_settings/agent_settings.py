@@ -88,4 +88,5 @@ class AgentSettings(Document):
 			},
 			json=data,
 		)
+		response.raise_for_status()
 		return response

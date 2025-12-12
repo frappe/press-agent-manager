@@ -7,12 +7,16 @@
  "field_order": [
   "job_type",
   "status",
-  "is_submitted_to_controlplane",
-  "submission_failure_count",
   "version_counter",
   "column_break_xarl",
   "start",
   "end",
+  "submission_section",
+  "is_submitted_to_controlplane",
+  "column_break_hlfd",
+  "submission_failure_count",
+  "column_break_obph",
+  "submission_next_retry_at",
   "section_break_glkb",
   "data",
   "output",
@@ -89,7 +93,8 @@
    "default": "0",
    "fieldname": "is_submitted_to_controlplane",
    "fieldtype": "Check",
-   "label": "Is Submitted to Controlplane"
+   "label": "Is Submitted to Controlplane",
+   "read_only": 1
   },
   {
    "fieldname": "submission_failure_count",
@@ -105,6 +110,28 @@
    "non_negative": 1,
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: false",
+   "fieldname": "submission_section",
+   "fieldtype": "Section Break",
+   "label": "Submission"
+  },
+  {
+   "fieldname": "column_break_hlfd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_obph",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "submission_next_retry_at",
+   "fieldtype": "Datetime",
+   "label": "Submission Next Retry At",
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
@@ -115,7 +142,7 @@
    "link_fieldname": "agent_job"
   }
  ],
- "modified": "2025-12-12 13:54:07.172667",
+ "modified": "2025-12-12 22:07:22.944011",
  "modified_by": "Administrator",
  "module": "Agent",
  "name": "Agent Job",

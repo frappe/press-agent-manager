@@ -120,20 +120,25 @@ class RemoteJob(Document):
 		step_doc.save()
 
 	def get_job_step(self, name: str, step_name: str, for_update: bool = True) -> RemoteJobStep:
-		if frappe.db.exists("Remote Job Step", name):
+		try:
+			# Try to get with for_update=True to lock the row
 			return frappe.get_doc("Remote Job Step", name, for_update=for_update)  # type: ignore
-
-		step_doc: RemoteJobStep = frappe.new_doc("Remote Job Step")  # type: ignore
-		step_doc.name = name
-		step_doc.flags.name_set = True
-		step_doc.step_name = step_name
-		step_doc.status = "Pending"
-		assert self.name
-		step_doc.remote_job = self.name
-		step_doc.version_counter = 0
-		step_doc.insert()
-		frappe.db.get_value("Remote Job Step", name, "name", for_update=for_update)
-		return step_doc
+		except frappe.DoesNotExistError:
+			# Only create if it truly doesn't exist
+			step_doc: RemoteJobStep = frappe.new_doc("Remote Job Step")  # type: ignore
+			step_doc.name = name
+			step_doc.flags.name_set = True
+			step_doc.step_name = step_name
+			step_doc.status = "Pending"
+			assert self.name
+			step_doc.remote_job = self.name
+			step_doc.version_counter = 0
+			try:
+				step_doc.insert()
+			except frappe.DuplicateEntryError:
+				# Race condition: another transaction created it
+				return frappe.get_doc("Remote Job Step", name, for_update=for_update)  # type: ignore
+			return step_doc
 
 	def _notify_agent_about_new_job(self):
 		if not self.agent:
