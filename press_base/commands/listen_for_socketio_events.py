@@ -26,17 +26,17 @@ EVENT_HANDLERS = {
 }
 
 
-@click.command("listen-for-socketio-events")
+@click.command("run-socketio-event-manager")
 @click.option("--site", help="site name")
 @pass_context
-def listen_for_socketio_events_cmd(context: CliCtxObj, site: str | None = None) -> None:
+def manage_socket_io_events_cmd(context: CliCtxObj, site: str | None = None) -> None:
 	site = site or get_site(context)
 
 	while True:
 		try:
 			with frappe.init_site(site):
 				frappe.connect()
-				listen_for_socketio_events()
+				manage_socket_io_events()
 		except KeyboardInterrupt:
 			print("Exiting...")
 			break
@@ -46,7 +46,7 @@ def listen_for_socketio_events_cmd(context: CliCtxObj, site: str | None = None) 
 			sleep(1)
 
 
-def listen_for_socketio_events() -> None:
+def manage_socket_io_events() -> None:
 	settings: AgentSettings = frappe.get_single("Agent Settings")  # type: ignore
 	assert settings.enabled, "Agent is not enabled from Settings"
 

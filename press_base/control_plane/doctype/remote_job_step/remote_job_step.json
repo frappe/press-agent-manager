@@ -8,6 +8,7 @@
   "step_name",
   "status",
   "remote_job",
+  "version_counter",
   "column_break_bixd",
   "start",
   "end",
@@ -98,12 +99,21 @@
    "read_only": 1,
    "reqd": 1,
    "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "version_counter",
+   "fieldtype": "Int",
+   "label": "Version Counter",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-12 04:12:24.572336",
+ "modified": "2025-12-12 13:46:35.680415",
  "modified_by": "Administrator",
  "module": "Control Plane",
  "name": "Remote Job Step",

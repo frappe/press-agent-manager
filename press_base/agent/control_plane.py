@@ -19,6 +19,9 @@ class ControlPlane:
 		self.settings: AgentSettings = frappe.get_single("Agent Settings")  # type: ignore
 
 	def poll_queued_jobs(self):
+		if not self.settings.controlplane_api_key:
+			return
+
 		response = self.settings.send_request_to_controlplane("GET", "/api/control-plane/remote-jobs")
 		response.raise_for_status()
 

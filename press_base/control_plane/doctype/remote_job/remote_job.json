@@ -9,6 +9,7 @@
   "agent",
   "status",
   "rejection_reason",
+  "version_counter",
   "column_break_uilj",
   "start",
   "end",
@@ -38,7 +39,6 @@
    "in_list_view": 1,
    "label": "Status",
    "options": "Queued\nPending\nRunning\nSuccess\nFailure\nRejected",
-   "read_only": 1,
    "reqd": 1,
    "search_index": 1
   },
@@ -111,6 +111,15 @@
    "fieldtype": "Data",
    "label": "Rejection Reason",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "version_counter",
+   "fieldtype": "Int",
+   "label": "Version Counter",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -121,7 +130,7 @@
    "link_fieldname": "remote_job"
   }
  ],
- "modified": "2025-12-12 11:44:44.535481",
+ "modified": "2025-12-12 14:06:18.022995",
  "modified_by": "Administrator",
  "module": "Control Plane",
  "name": "Remote Job",

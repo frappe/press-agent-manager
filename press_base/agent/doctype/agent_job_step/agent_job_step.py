@@ -1,8 +1,10 @@
 # Copyright (c) 2025, Frappe and contributors
 # For license information, please see license.txt
 
-import frappe
+from datetime import time
+
 from frappe.model.document import Document
+from frappe.utils.data import cint, get_datetime
 
 from press_base.agent.realtime import send_realtime_event_to_controlplane
 
@@ -18,7 +20,6 @@ class AgentJobStep(Document):
 
 		agent_job: DF.Link
 		data: DF.Text | None
-		duration: DF.Time | None
 		end: DF.Datetime | None
 		error: DF.SmallText | None
 		output: DF.Text | None
@@ -26,10 +27,16 @@ class AgentJobStep(Document):
 		status: DF.Literal["Pending", "Running", "Success", "Failure"]
 		step_name: DF.Data
 		traceback: DF.Text | None
+		version_counter: DF.Int
 	# end: auto-generated types
 
 	def on_update(self):
 		self.notify_controlplane()
+		self.increment_version_counter()
+
+	def increment_version_counter(self):
+		self.version_counter += 1
+		self.db_update()
 
 	def notify_controlplane(self):
 		if self.is_new():
@@ -40,6 +47,7 @@ class AgentJobStep(Document):
 			{
 				"job_id": self.agent_job,
 				"data": {
+					"name": self.name,
 					"step_name": self.step_name,
 					"status": self.status,
 					"start": self.start,
@@ -48,6 +56,7 @@ class AgentJobStep(Document):
 					"data": self.data,
 					"error": self.error,
 					"traceback": self.traceback,
+					"version_counter": self.version_counter,
 				},
 			},
 		)

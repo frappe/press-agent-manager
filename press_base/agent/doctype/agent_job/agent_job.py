@@ -24,7 +24,6 @@ class AgentJob(Document):
 		from frappe.types import DF
 
 		data: DF.Text | None
-		duration: DF.Time | None
 		end: DF.Datetime | None
 		error: DF.SmallText | None
 		is_submitted_to_controlplane: DF.Check
@@ -34,6 +33,7 @@ class AgentJob(Document):
 		status: DF.Literal["Pending", "Running", "Success", "Failure"]
 		submission_failure_count: DF.Int
 		traceback: DF.LongText | None
+		version_counter: DF.Int
 	# end: auto-generated types
 
 	@property
@@ -43,6 +43,11 @@ class AgentJob(Document):
 	def on_update(self):
 		self.notify_controlplane()
 		self.submit_to_controlplane_on_reaching_termination_state()
+		self.increment_version_counter()
+
+	def increment_version_counter(self):
+		self.version_counter += 1
+		self.db_update()
 
 	def submit_to_controlplane_on_reaching_termination_state(self):
 		if self.has_value_changed("status") and self.status in ["Success", "Failure"]:
@@ -80,8 +85,10 @@ class AgentJob(Document):
 					data=self.data,
 					error=self.error,
 					traceback=self.traceback,
+					version_counter=self.version_counter,
 					steps=[
 						RemoteJobStepSyncDetails(
+							name=step.name,
 							step_name=step.step_name,
 							status=RemoteJobStepStatus(step.status),
 							start=step.start,
@@ -90,6 +97,7 @@ class AgentJob(Document):
 							data=step.data,
 							error=step.error,
 							traceback=step.traceback,
+							version_counter=step.version_counter,
 						)
 						for step in steps
 					],
@@ -132,6 +140,7 @@ class AgentJob(Document):
 					"data": self.data,
 					"error": self.error,
 					"traceback": self.traceback,
+					"version_counter": self.version_counter,
 				},
 			},
 		)

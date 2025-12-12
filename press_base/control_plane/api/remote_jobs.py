@@ -5,6 +5,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 import frappe
+from frappe.utils import get_datetime
 from pydantic import BaseModel
 
 from press_base.control_plane.api.control_plane import control_plane_router
@@ -106,9 +107,11 @@ class RemoteJobSyncDetails(BaseModel):
 	output: str | None = None
 	error: str | None = None
 	traceback: str | None = None
+	version_counter: int
 
 
 class RemoteJobStepSyncDetails(BaseModel):
+	name: str
 	step_name: str
 	status: RemoteJobStepStatus
 	start: datetime | str | None = None
@@ -117,6 +120,7 @@ class RemoteJobStepSyncDetails(BaseModel):
 	output: str | None = None
 	error: str | None = None
 	traceback: str | None = None
+	version_counter: int
 
 
 @remote_jobs_router.post("<string:job_id>/sync-job")
@@ -128,12 +132,13 @@ def sync_job(job_id: str, payload: RemoteJobSyncDetails):
 	job: RemoteJob = frappe.get_doc("Remote Job", job_id, for_update=True)  # type: ignore
 	job.sync_info(
 		payload.status.value,
-		payload.start,
-		payload.end,
+		get_datetime(payload.start),
+		get_datetime(payload.end),
 		payload.data,
 		payload.output,
 		payload.error,
 		payload.traceback,
+		payload.version_counter,
 	)
 
 
@@ -145,13 +150,16 @@ def sync_job_step(job_id: str, payload: RemoteJobStepSyncDetails):
 
 	job: RemoteJob = frappe.get_doc("Remote Job", job_id, for_update=True)  # type: ignore
 	job.sync_job_step(
+		payload.name,
 		payload.step_name,
 		payload.status.value,
-		payload.start,
-		payload.end,
+		get_datetime(payload.start),
+		get_datetime(payload.end),
 		payload.output,
+		payload.data,
 		payload.error,
 		payload.traceback,
+		payload.version_counter,
 	)
 
 
@@ -170,21 +178,25 @@ def finalize_job(job_id: str, payload: RemoteJobCompletionDetails):
 	job: RemoteJob = frappe.get_doc("Remote Job", job_id, for_update=True)  # type: ignore
 	job.sync_info(
 		payload.status.value,
-		payload.start,
-		payload.end,
+		get_datetime(payload.start),
+		get_datetime(payload.end),
 		payload.data,
 		payload.output,
 		payload.error,
 		payload.traceback,
+		payload.version_counter,
 	)
 
 	for step in payload.steps:
 		job.sync_job_step(
+			step.name,
 			step.step_name,
 			step.status.value,
-			step.start,
-			step.end,
+			get_datetime(step.start),
+			get_datetime(step.end),
+			step.data,
 			step.output,
 			step.error,
 			step.traceback,
+			step.version_counter,
 		)

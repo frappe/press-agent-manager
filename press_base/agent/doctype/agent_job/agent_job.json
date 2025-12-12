@@ -9,10 +9,10 @@
   "status",
   "is_submitted_to_controlplane",
   "submission_failure_count",
+  "version_counter",
   "column_break_xarl",
   "start",
   "end",
-  "duration",
   "section_break_glkb",
   "data",
   "output",
@@ -45,12 +45,6 @@
    "fieldname": "end",
    "fieldtype": "Datetime",
    "label": "End",
-   "read_only": 1
-  },
-  {
-   "fieldname": "duration",
-   "fieldtype": "Time",
-   "label": "Duration",
    "read_only": 1
   },
   {
@@ -102,6 +96,15 @@
    "fieldtype": "Int",
    "label": "Submission Failure Count",
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "version_counter",
+   "fieldtype": "Int",
+   "label": "Version Counter",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
@@ -112,7 +115,7 @@
    "link_fieldname": "agent_job"
   }
  ],
- "modified": "2025-12-12 10:32:15.713775",
+ "modified": "2025-12-12 13:54:07.172667",
  "modified_by": "Administrator",
  "module": "Agent",
  "name": "Agent Job",

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from press_base.commands.listen_for_socketio_events import listen_for_socketio_events_cmd
+from press_base.commands.listen_for_socketio_events import manage_socket_io_events_cmd
 
 commands = [
-	listen_for_socketio_events_cmd,
+	manage_socket_io_events_cmd,
 ]

@@ -3,6 +3,7 @@
 
 # import frappe
 from frappe.model.document import Document
+from frappe.utils import cint, get_datetime
 
 
 class RemoteJobStep(Document):
@@ -24,6 +25,17 @@ class RemoteJobStep(Document):
 		status: DF.Literal["Pending", "Running", "Success", "Failure", "Skipped"]
 		step_name: DF.Data
 		traceback: DF.LongText | None
+		version_counter: DF.Int
 	# end: auto-generated types
 
-	pass
+	def on_update(self):
+		self.calculate_duration()
+
+	def calculate_duration(self):
+		if (
+			self.start
+			and self.end
+			and ((self.has_value_changed("start") or self.has_value_changed("end")) or not self.duration)
+		):
+			self.duration = cint((get_datetime(self.end) - get_datetime(self.start)).total_seconds())  # type: ignore
+			self.db_update()
