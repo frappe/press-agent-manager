@@ -8,13 +8,13 @@
   "job_type",
   "agent",
   "status",
-  "rejection_reason",
   "version_counter",
   "column_break_uilj",
   "start",
   "end",
   "duration",
   "section_break_zxlv",
+  "rejection_reason",
   "request_data",
   "data",
   "output",
@@ -108,8 +108,9 @@
    "set_only_once": 1
   },
   {
+   "depends_on": "eval: doc.status == \"Rejected\"",
    "fieldname": "rejection_reason",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Rejection Reason",
    "read_only": 1
   },
@@ -131,7 +132,7 @@
    "link_fieldname": "remote_job"
   }
  ],
- "modified": "2025-12-12 23:08:54.084874",
+ "modified": "2025-12-13 00:51:19.909143",
  "modified_by": "Administrator",
  "module": "Control Plane",
  "name": "Remote Job",

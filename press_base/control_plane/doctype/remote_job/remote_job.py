@@ -32,7 +32,7 @@ class RemoteJob(Document):
 		error: DF.SmallText | None
 		job_type: DF.Link
 		output: DF.LongText | None
-		rejection_reason: DF.Data | None
+		rejection_reason: DF.SmallText | None
 		request_data: DF.JSON | None
 		start: DF.Datetime | None
 		status: DF.Literal["Queued", "Pending", "Running", "Success", "Failure", "Rejected"]

@@ -71,6 +71,17 @@ def enqueue(
 	if not job_type:
 		raise ValueError("Job type is required")
 
+	# Check if the method is decorated with @step
+	if getattr(method, "__is_step_decorator__", False):
+		frappe.throw(
+			title="Invalid Function",
+			msg=(
+				f"Cannot enqueue @step decorated function '{getattr(method, '__name__', 'unknown')}'.\n\n"
+				"The @step decorator cannot be used on the top-level function passed to enqueue() "
+				"because it creates closures that cannot be pickled.\n\n"
+			),
+		)
+
 	# If agent job exists, no need to enqueue
 	if agent_job_name and frappe.db.exists("Agent Job", agent_job_name):
 		return frappe.get_doc("Agent Job", agent_job_name)  # type: ignore
@@ -105,6 +116,49 @@ def enqueue(
 
 
 def step(title: str):
+	"""
+	Decorator to mark a function as a step in an agent job.
+
+	When a function decorated with @step runs within an agent job context, it will:
+	- Create/update an Agent Job Step record
+	- Capture all stdout/stderr output (including print statements)
+	- Track execution time, status, and any errors
+	- Support real-time output flushing via flush_output()
+
+	Args:
+		title: Display name for the step in the job log
+
+	Usage:
+		@step("Process Data")
+		def process_data():
+			print("Processing...")
+			flush_output()  # Optional: commit logs in real-time
+			return result
+
+	Important:
+		- @step decorated functions work anywhere in your codebase
+		- They automatically detect if running within a job context
+		- If no job context exists, they execute as normal functions
+
+		⚠️ DO NOT use @step on the function you pass directly to enqueue():
+
+		❌ WRONG:
+			@step("My Job")
+			def my_job():
+				pass
+			enqueue("type", my_job)  # Causes pickle errors!
+
+		✅ CORRECT:
+			def my_job():
+				process_step()
+
+			@step("Process Step")
+			def process_step():
+				pass
+
+			enqueue("type", my_job)  # Works perfectly
+	"""
+
 	def decorator(func):
 		def wrapper(*args, **kwargs):
 			try:
@@ -183,6 +237,8 @@ def step(title: str):
 
 			return result
 
+		# Mark this as a step-decorated function
+		wrapper.__is_step_decorator__ = True  # type: ignore
 		return wrapper
 
 	return decorator

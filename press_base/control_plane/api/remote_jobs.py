@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import frappe
 from frappe.utils import get_datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from press_base.control_plane.api.control_plane import control_plane_router
 from press_base.press_base import api_docs, jsonify
@@ -57,6 +57,12 @@ class JobAckowledgement(BaseModel):
 	enqueued: bool = False
 	rejected: bool = False
 	rejection_reason: str | None = None
+
+	@field_validator("rejection_reason")
+	def truncate_reason(cls, v):
+		if v is None:
+			return v
+		return v[:1000]
 
 
 @remote_jobs_router.post("acknowledge")
