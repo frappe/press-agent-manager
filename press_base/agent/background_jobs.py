@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 agent_job_context: ContextVar[AgentJob] = ContextVar("agent_job_context")
 agent_job_step_context: ContextVar[AgentJobStep | None] = ContextVar("agent_job_step_context", default=None)
+agent_job_flush_output: ContextVar[Callable | None] = ContextVar("agent_job_flush_output", default=None)
 
 """
 Agent Job & Step Integration
@@ -124,6 +125,24 @@ def step(title: str):
 			step = _get_or_create_agent_step(agent_job, title)
 			agent_job_step_context.set(step)
 
+			def flush_output_impl():
+				"""
+				Flush current output buffer to database
+				This is meant to be used for realtime log update of steps
+				"""
+				try:
+					current_output = output_buffer.getvalue()
+					if current_output:
+						step.output = current_output
+						step.save()
+						frappe.db.commit()
+				except Exception as e:
+					frappe.log_error(f"Error flushing output: {e}")
+
+			# Store previous flush_output and set new one
+			old_flush = agent_job_flush_output.get()
+			agent_job_flush_output.set(flush_output_impl)
+
 			try:
 				step.status = "Running"
 				step.start = now_datetime()
@@ -138,6 +157,10 @@ def step(title: str):
 			except Exception as e:
 				error = str(e)
 				traceback_data = traceback.format_exc()
+
+				# Restore previous flush_output
+				agent_job_flush_output.set(old_flush)
+
 				raise e
 			finally:
 				step.status = "Success" if success else "Failure"
@@ -155,11 +178,21 @@ def step(title: str):
 				# Reset step context
 				agent_job_step_context.set(None)
 
+				# Restore previous flush_output
+				agent_job_flush_output.set(old_flush)
+
 			return result
 
 		return wrapper
 
 	return decorator
+
+
+def flush_output():
+	"""Alias function to flush output from current step context"""
+	flush_fn = agent_job_flush_output.get()
+	if flush_fn:
+		flush_fn()
 
 
 def update_step_data(data: str, replace: bool = False):

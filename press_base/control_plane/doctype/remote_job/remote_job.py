@@ -154,7 +154,6 @@ class RemoteJob(Document):
 
 			# hooks[job_type] is a list of pairs → (status_list_or_star, dotted_path)
 			for statuses, dotted_path in hooks[job_type]:
-				print(statuses, dotted_path)
 				# "*" means all statuses allowed
 				if statuses == "*" or status in statuses:
 					frappe.call(dotted_path, self)
