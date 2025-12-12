@@ -52,6 +52,8 @@ class RemoteJob(Document):
 			frappe.throw("Job cannot be updated anymore as it is already completed")
 
 		self.calculate_duration()
+		if not self.is_new():
+			self.process_callback()
 
 	def calculate_duration(self):
 		if (
@@ -139,6 +141,31 @@ class RemoteJob(Document):
 				# Race condition: another transaction created it
 				return frappe.get_doc("Remote Job Step", name, for_update=for_update)  # type: ignore
 			return step_doc
+
+	def process_callback(self):
+		try:
+			job_type = self.job_type
+			status = self.status
+
+			hooks = frappe.get_hooks("remote_job_callback_handlers") or {}
+
+			if job_type not in hooks:
+				return
+
+			# hooks[job_type] is a list of pairs → (status_list_or_star, dotted_path)
+			for statuses, dotted_path in hooks[job_type]:
+				print(statuses, dotted_path)
+				# "*" means all statuses allowed
+				if statuses == "*" or status in statuses:
+					frappe.call(dotted_path, self)
+
+		except Exception:
+			frappe.log_error(
+				title="Remote Job Callback Failed",
+				reference_doctype=self.doctype,
+				reference_name=self.name,
+			)
+			raise
 
 	def _notify_agent_about_new_job(self):
 		if not self.agent:

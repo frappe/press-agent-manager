@@ -260,3 +260,17 @@ export_python_type_annotations = True
 # 	"Ping Job": "press_base.agent.doctype.agent_job.agent_job.ping_job_handler",
 # 	"Other Job": "press_base.agent.doctype.agent_job.agent_job.other_job_handler",
 # }
+
+
+# Remote Job Callback Handler
+# ------------
+# Each handler should follow the signature:
+# def handler(job: RemoteJob) -> None:
+#     pass
+#
+# remote_job_callback_handlers = {
+# 	"Ping Agent": [
+# 		("*", "press_base.control_plane.doctype.remote_job.remote_job.dummy"),
+# 		(["Success", "Failure"], "press_base.control_plane.doctype.remote_job.remote_job.dummy"),
+# 	],
+# }

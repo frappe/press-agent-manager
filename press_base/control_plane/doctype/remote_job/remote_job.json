@@ -66,7 +66,8 @@
   },
   {
    "fieldname": "section_break_zxlv",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Data"
   },
   {
    "fieldname": "data",
@@ -130,7 +131,7 @@
    "link_fieldname": "remote_job"
   }
  ],
- "modified": "2025-12-12 14:06:18.022995",
+ "modified": "2025-12-12 23:08:54.084874",
  "modified_by": "Administrator",
  "module": "Control Plane",
  "name": "Remote Job",
