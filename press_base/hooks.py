@@ -120,9 +120,9 @@ app_license = "agpl-3.0"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
+permission_query_conditions = {
+	"Remote Job": "press_base.control_plane.doctype.remote_job.remote_job.get_permission_query_conditions",
+}
 #
 # has_permission = {
 # 	"Event": "frappe.desk.doctype.event.event.has_permission",
@@ -143,24 +143,24 @@ app_license = "agpl-3.0"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"press_base.tasks.all"
-# 	],
-# 	"daily": [
-# 		"press_base.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"press_base.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"press_base.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"press_base.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"cron": {
+		"*/5 * * * *": "press_base.agent.control_plane.poll_queued_jobs",
+		"* * * * *": "press_base.agent.doctype.agent_job.agent_job.submit_agent_jobs_to_controlplane",
+	}
+}
 
+fixtures = [
+	{
+		"dt": "Role",
+		"filters": {
+			"role_name": [
+				"in",
+				["Agent Admin", "Agent Resource Owner"],
+			]
+		},
+	}
+]
 # Testing
 # -------
 
@@ -239,7 +239,7 @@ app_license = "agpl-3.0"
 # ]
 
 # Automatically update python controller files with type annotations for this app.
-# export_python_type_annotations = True
+export_python_type_annotations = True
 
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
@@ -250,3 +250,27 @@ app_license = "agpl-3.0"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+
+# Agent Job Handler
+# ------------
+# Each handler should follow the signature:
+# def handler(job_name: str, job_type: str) -> None:
+#     pass
+# agent_job_handlers = {
+# 	"Ping Job": "press_base.agent.doctype.agent_job.agent_job.ping_job_handler",
+# 	"Other Job": "press_base.agent.doctype.agent_job.agent_job.other_job_handler",
+# }
+
+
+# Remote Job Callback Handler
+# ------------
+# Each handler should follow the signature:
+# def handler(job: RemoteJob) -> None:
+#     pass
+#
+# remote_job_callback_handlers = {
+# 	"Ping Agent": [
+# 		("*", "press_base.control_plane.doctype.remote_job.remote_job.dummy"),
+# 		(["Success", "Failure"], "press_base.control_plane.doctype.remote_job.remote_job.dummy"),
+# 	],
+# }

@@ -1,0 +1,147 @@
+{
+ "actions": [],
+ "autoname": "UUID",
+ "creation": "2025-12-10 10:25:05.703375",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "step_name",
+  "status",
+  "agent_job",
+  "version_counter",
+  "column_break_jycy",
+  "start",
+  "end",
+  "section_break_nndv",
+  "data",
+  "output",
+  "error",
+  "traceback"
+ ],
+ "fields": [
+  {
+   "fieldname": "step_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Step Name",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Pending",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending\nRunning\nSuccess\nFailure",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "agent_job",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Agent Job",
+   "options": "Agent Job",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_jycy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start",
+   "fieldtype": "Datetime",
+   "label": "Start",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "end",
+   "fieldtype": "Datetime",
+   "label": "End",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_nndv",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Text",
+   "label": "Data",
+   "read_only": 1
+  },
+  {
+   "fieldname": "output",
+   "fieldtype": "Text",
+   "label": "Output",
+   "read_only": 1
+  },
+  {
+   "fieldname": "traceback",
+   "fieldtype": "Text",
+   "label": "Traceback",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Small Text",
+   "label": "Error",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "version_counter",
+   "fieldtype": "Int",
+   "label": "Version Counter",
+   "non_negative": 1,
+   "read_only": 1,
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-12 13:54:01.493208",
+ "modified_by": "Administrator",
+ "module": "Agent",
+ "name": "Agent Job Step",
+ "naming_rule": "UUID",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Agent Admin",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
