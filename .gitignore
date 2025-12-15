@@ -51,5 +51,9 @@ jspm_packages/
 # Helix Editor
 .helix/
 
-# Aider AI Chat
+# AI Chat
 .aider*
+.claude
+
+# Custom
+playbooks

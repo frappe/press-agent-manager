@@ -1,7 +1,7 @@
-import threading
-from functools import wraps
 from typing import Any
 
+import wrapt
+from frappe.model.db_query import frappe
 from pydantic import BaseModel, TypeAdapter
 
 
@@ -16,3 +16,18 @@ def pydantic_serialize(data: Any) -> Any:
 	# Lists, dicts, tuples, sets, etc.
 	adapter = TypeAdapter(type(data))
 	return adapter.dump_python(data, mode="json")
+
+
+def reconnect_on_failure():
+	@wrapt.decorator
+	def wrapper(wrapped, instance, args, kwargs):
+		_ = instance
+		try:
+			return wrapped(*args, **kwargs)
+		except Exception as e:
+			if frappe.db.is_interface_error(e):  # type: ignore
+				frappe.db.connect()
+				return wrapped(*args, **kwargs)
+			raise
+
+	return wrapper
