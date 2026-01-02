@@ -12,7 +12,7 @@ dependencies = [
     "wrapt==2.0.1",
     "pydantic~=2.12.5",
     "pydantic-core~=2.41.5",
-    "ansible==13.1.0",
+    "ansible==13.2.0",
     "ansible-runner==2.4.2",
 ]
 
