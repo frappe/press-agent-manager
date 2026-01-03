@@ -1,6 +1,6 @@
 const { get_url } = require("../../frappe/realtime/utils");
 
-function press_base_event_handler(socket) {
+function press_agent_manager_event_handler(socket) {
 	socket.on("remote_job.sync_job", (message) => {
 		let job_id = message.job_id;
 		let data = message.data;
@@ -53,4 +53,4 @@ function send_request(
 	});
 }
 
-module.exports = press_base_event_handler;
+module.exports = press_agent_manager_event_handler;

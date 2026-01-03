@@ -7,7 +7,7 @@ on:
   pull_request:
 
 concurrency:
-  group: develop-press_base-${{ github.event.number }}
+  group: develop-press_agent_manager-${{ github.event.number }}
   cancel-in-progress: true
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 24.12.0
           check-latest: true
 
       - name: Cache pip
@@ -90,10 +90,10 @@ jobs:
       - name: Install
         working-directory: /home/runner/frappe-bench
         run: |
-          bench get-app press_base $GITHUB_WORKSPACE
+          bench get-app press_agent_manager $GITHUB_WORKSPACE
           bench setup requirements --dev
           bench new-site --db-root-password root --admin-password admin test_site
-          bench --site test_site install-app press_base
+          bench --site test_site install-app press_agent_manager
           bench build
         env:
           CI: "Yes"
@@ -102,6 +102,6 @@ jobs:
         working-directory: /home/runner/frappe-bench
         run: |
           bench --site test_site set-config allow_tests true
-          bench --site test_site run-tests --app press_base
+          bench --site test_site run-tests --app press_agent_manager
         env:
           TYPE: server
