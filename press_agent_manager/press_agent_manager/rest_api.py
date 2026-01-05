@@ -86,6 +86,7 @@ class Router:
 		self,
 		prefix: str = "",
 		name: str | None = None,
+		default_headers: dict[str, str | int | bool] | None = None,
 		enable_api_docs: bool = False,
 		allow_api_docs_guest_access: bool = False,
 		api_docs_show_authorization_options: bool = True,
@@ -101,6 +102,7 @@ class Router:
 			raise ValueError("Router prefix cannot start with /api/v1/ or /api/v2/")
 
 		self.name = name or self.prefix
+		self.default_headers: dict[str, str | int | bool] = default_headers or {}
 		self.description = description
 		self.enable_api_docs = enable_api_docs
 		self.api_docs_show_authorization_options = api_docs_show_authorization_options
@@ -145,6 +147,9 @@ class Router:
 
 		return decorator
 
+	def head(self, path: str = "", allow_guest=False, include_in_docs: bool = True):
+		return self._create_method_decorator("HEAD")(path, allow_guest, include_in_docs)
+
 	def get(self, path: str = "", allow_guest=False, include_in_docs: bool = True):
 		return self._create_method_decorator("GET")(path, allow_guest, include_in_docs)
 
@@ -157,8 +162,19 @@ class Router:
 	def delete(self, path: str = "", allow_guest=False, include_in_docs: bool = True):
 		return self._create_method_decorator("DELETE")(path, allow_guest, include_in_docs)
 
-	def subrouter(self, subpath: str, name: str | None = None, description: str | None = None):
-		r = Router(name=name, description=description, enable_api_docs=False)
+	def subrouter(
+		self,
+		subpath: str,
+		name: str | None = None,
+		description: str | None = None,
+		default_headers: dict[str, str | int | bool] | None = None,
+	):
+		r = Router(
+			name=name,
+			description=description,
+			enable_api_docs=False,
+			default_headers=default_headers or self.default_headers,
+		)
 		r.prefix = self._join(subpath)
 		r._store_route_docs = True
 		self._children.append(r)
@@ -262,7 +278,13 @@ def jsonify(data, status_code=200) -> Response:
 	return Response(orjson_dumps(data), status=status_code, mimetype="application/json")
 
 
-def _request(router: Router, path: str, methods: list[str], allow_guest: bool, include_in_docs: bool = True):
+def _request(
+	router: Router,
+	path: str,
+	methods: list[str],
+	allow_guest: bool,
+	include_in_docs: bool = True,
+):
 	from frappe.api import API_URL_MAP
 
 	_validate_http_methods(methods)
@@ -323,7 +345,7 @@ def _request(router: Router, path: str, methods: list[str], allow_guest: bool, i
 					call_kwargs = {k: v for k, v in kwargs.items() if k in accepted_kwarg_names}
 
 				result = fn(*args, **call_kwargs)
-				return _handle_function_result(result)
+				return _handle_function_result(result, router.default_headers)
 
 			except HTTPException:
 				raise
@@ -367,7 +389,7 @@ def _request(router: Router, path: str, methods: list[str], allow_guest: bool, i
 def _validate_http_methods(methods: list[str]) -> None:
 	if not methods:
 		raise ValueError("HTTP methods must be specified")
-	valid_methods = {"GET", "POST", "PUT", "DELETE"}
+	valid_methods = {"HEAD", "GET", "POST", "PUT", "DELETE"}
 	for method in methods:
 		if method not in valid_methods:
 			raise ValueError(f"Invalid HTTP method: {method}")
@@ -461,7 +483,7 @@ def _validate_and_convert_payload(
 	return raw
 
 
-def _handle_function_result(result: Any) -> Response:
+def _handle_function_result(result: Any, headers: dict | None) -> Response:
 	status = None
 	if isinstance(result, tuple) and len(result) == 2:
 		result, status = result
@@ -469,12 +491,17 @@ def _handle_function_result(result: Any) -> Response:
 	if isinstance(result, Response):
 		if status:
 			result.status_code = status
-		return result
-
-	if isinstance(result, dict | list):
+	elif isinstance(result, dict | list):
 		return jsonify(result, status_code=status or 200)
+	else:
+		result = Response(str(result), status=status or 200, mimetype="text/plain")
 
-	return Response(str(result), status=status or 200, mimetype="text/plain")
+	# Append headers
+	if headers:
+		for key, value in headers.items():
+			result.headers[key] = value
+
+	return result
 
 
 def _build_error_response(exc: Exception, fn_name: str) -> Response:
@@ -555,7 +582,9 @@ DEFAULT_TYPE = "string"
 
 
 def _schema_for_payload(
-	payload_type: Any, payload_info: tuple[bool, bool, Any | None], components_schemas: dict
+	payload_type: Any,
+	payload_info: tuple[bool, bool, Any | None],
+	components_schemas: dict,
 ) -> dict | None:
 	if not payload_type:
 		return None
@@ -565,7 +594,10 @@ def _schema_for_payload(
 	# Handle list[PydanticModel]
 	if is_list and is_pydantic and item_type:
 		_add_pydantic_schema(item_type, components_schemas)
-		return {"type": "array", "items": {"$ref": f"#/components/schemas/{item_type.__name__}"}}
+		return {
+			"type": "array",
+			"items": {"$ref": f"#/components/schemas/{item_type.__name__}"},
+		}
 
 	# Handle single Pydantic model
 	if is_pydantic:
@@ -763,7 +795,12 @@ def generate_openapi_specs(router: Router) -> dict:
 		for m in r.methods:
 			method = m.lower()
 			op = _build_operation(
-				r, method, path_params, components["schemas"], docs_meta, router.default_responses
+				r,
+				method,
+				path_params,
+				components["schemas"],
+				docs_meta,
+				router.default_responses,
 			)
 			paths[openapi_path][method] = op
 
@@ -789,7 +826,10 @@ def generate_openapi_specs(router: Router) -> dict:
 		"paths": paths,
 		"components": components,
 		"tags": router.section_tags,
-		"security": [{"Token Based Authentication": []}, {"Access Token Authentication": []}]
+		"security": [
+			{"Token Based Authentication": []},
+			{"Access Token Authentication": []},
+		]
 		if router.api_docs_show_authorization_options
 		else [],
 	}
