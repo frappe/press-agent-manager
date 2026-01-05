@@ -47,11 +47,11 @@ def api_docs(
 	Example:
 
 	@docs(
-	    request_example={"first": "Tanmoy", "last": "Sarkar", "age": 25},
-	    responses={
-	        200: {"description": "User created", "example": {"id": "USR-001", "first": "Tanmoy"}},
-	        400: {"description": "Invalid payload", "example": {"error": "invalid request data"}},
-	    },
+		request_example={"first": "Tanmoy", "last": "Sarkar", "age": 25},
+		responses={
+			200: {"description": "User created", "example": {"id": "USR-001", "first": "Tanmoy"}},
+			400: {"description": "Invalid payload", "example": {"error": "invalid request data"}},
+		},
 	)
 	"""
 	meta = RouteDocs(
@@ -95,6 +95,7 @@ class Router:
 		api_docs_default_ui: Literal["swagger", "redoc"] = "swagger",
 		description: str | None = None,
 		default_responses: dict[int, dict[str, Any]] | None = None,
+		error_message_key: str = "error",
 	):
 		self.prefix = f"/api/{prefix.strip('/')}"
 		prefix_path = self.prefix + "/"
@@ -109,6 +110,7 @@ class Router:
 		self.api_docs_title = api_docs_title
 		self.api_docs_version = api_docs_version
 		self.api_docs_default_ui = api_docs_default_ui
+		self.error_message_key = error_message_key
 		self._routes: list[RouteMeta] = []
 		self._children: list[Router] = []
 		self._store_route_docs = False
@@ -174,6 +176,7 @@ class Router:
 			description=description,
 			enable_api_docs=False,
 			default_headers=default_headers or self.default_headers,
+			error_message_key=self.error_message_key,
 		)
 		r.prefix = self._join(subpath)
 		r._store_route_docs = True
@@ -208,10 +211,10 @@ class Router:
 					<script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
 					<script>
 					  window.onload = () => {{
-					    SwaggerUIBundle({{
-					      url: '{self._join("docs/openapi.json")}',
-					      dom_id: '#swagger-ui'
-					    }});
+						SwaggerUIBundle({{
+						  url: '{self._join("docs/openapi.json")}',
+						  dom_id: '#swagger-ui'
+						}});
 					  }};
 					</script>
 					</body>
@@ -219,23 +222,23 @@ class Router:
 				 		"""
 			else:
 				html = f"""<!DOCTYPE html>
-				      <html>
+					  <html>
 						<head>
-				          <title>{self.api_docs_title}</title>
-				          <meta charset="utf-8"/>
-				          <meta name="viewport" content="width=device-width, initial-scale=1">
-				          <style>
-				            body {{
-				              margin: 0;
-				              padding: 0;
-				              }}
-				          </style>
-				        </head>
-				        <body>
-				          <redoc spec-url='{self._join("docs/openapi.json")}'></redoc>
-				          <script type="module" src="https://cdn.redoc.ly/redoc/v3.0.0-rc.0/redoc.standalone.js"> </script>
-				        </body>
-				      </html>
+						  <title>{self.api_docs_title}</title>
+						  <meta charset="utf-8"/>
+						  <meta name="viewport" content="width=device-width, initial-scale=1">
+						  <style>
+							body {{
+							  margin: 0;
+							  padding: 0;
+							  }}
+						  </style>
+						</head>
+						<body>
+						  <redoc spec-url='{self._join("docs/openapi.json")}'></redoc>
+						  <script type="module" src="https://cdn.redoc.ly/redoc/v3.0.0-rc.0/redoc.standalone.js"> </script>
+						</body>
+					  </html>
 				"""
 
 			return Response(html.strip(), mimetype="text/html")
@@ -317,7 +320,10 @@ def _request(
 							raw = orjson.loads(request_data)
 						except orjson.JSONDecodeError:
 							raise HTTPException(
-								response=jsonify({"error": "Invalid JSON payload"}, status_code=400)
+								response=jsonify(
+									{router.error_message_key: "Invalid JSON payload"},
+									status_code=400,
+								)
 							)
 
 					if not raw:
@@ -334,7 +340,12 @@ def _request(
 								error_msg += f": expected {payload_annotation.__name__} model"
 							else:
 								error_msg += f": expected {payload_annotation.__name__}"
-							raise HTTPException(response=jsonify({"error": error_msg}, status_code=400))
+							raise HTTPException(
+								response=jsonify(
+									{router.error_message_key: error_msg},
+									status_code=400,
+								)
+							)
 
 						kwargs["payload"] = converted
 
@@ -356,11 +367,15 @@ def _request(
 				frappe.ValidationError,
 				PydanticValidationError,
 			) as exc:
-				raise HTTPException(response=_build_error_response(exc, fn.__name__))
+				raise HTTPException(
+					response=_build_error_response(exc, fn.__name__, router.error_message_key)
+				)
 			except Exception as exc:
 				if frappe.conf.developer_mode:
 					print(f"Unexpected error in API endpoint {fn.__name__}: {type(exc).__name__}: {exc}")
-				raise HTTPException(response=_build_error_response(exc, fn.__name__))
+				raise HTTPException(
+					response=_build_error_response(exc, fn.__name__, router.error_message_key)
+				)
 
 		API_URL_MAP.add(Rule(path, endpoint=executor, methods=methods))
 
@@ -504,7 +519,7 @@ def _handle_function_result(result: Any, headers: dict | None) -> Response:
 	return result
 
 
-def _build_error_response(exc: Exception, fn_name: str) -> Response:
+def _build_error_response(exc: Exception, fn_name: str, error_message_key: str = "error") -> Response:
 	error_map = {
 		(frappe.AuthenticationError, frappe.SessionExpired): (401, "login required"),
 		(frappe.PermissionError,): (403, "unauthorized access"),
@@ -539,7 +554,7 @@ def _build_error_response(exc: Exception, fn_name: str) -> Response:
 		if frappe.conf.developer_mode:
 			print(f"Unhandled exception in {fn_name}: {type(exc).__name__}: {exc}")
 
-	response: dict = {"error": msg}
+	response: dict = {error_message_key: msg}
 	if validation_errors:
 		response["validation_errors"] = validation_errors
 
