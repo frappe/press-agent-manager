@@ -47,11 +47,11 @@ def api_docs(
 	Example:
 
 	@docs(
-		request_example={"first": "Tanmoy", "last": "Sarkar", "age": 25},
-		responses={
-			200: {"description": "User created", "example": {"id": "USR-001", "first": "Tanmoy"}},
-			400: {"description": "Invalid payload", "example": {"error": "invalid request data"}},
-		},
+	        request_example={"first": "Tanmoy", "last": "Sarkar", "age": 25},
+	        responses={
+	                200: {"description": "User created", "example": {"id": "USR-001", "first": "Tanmoy"}},
+	                400: {"description": "Invalid payload", "example": {"error": "invalid request data"}},
+	        },
 	)
 	"""
 	meta = RouteDocs(
@@ -96,6 +96,7 @@ class Router:
 		description: str | None = None,
 		default_responses: dict[int, dict[str, Any]] | None = None,
 		error_message_key: str = "error",
+		error_message_prettier: Callable[[dict], str] | None = None,
 	):
 		self.prefix = f"/api/{prefix.strip('/')}"
 		prefix_path = self.prefix + "/"
@@ -111,6 +112,7 @@ class Router:
 		self.api_docs_version = api_docs_version
 		self.api_docs_default_ui = api_docs_default_ui
 		self.error_message_key = error_message_key
+		self.error_message_prettier = error_message_prettier
 		self._routes: list[RouteMeta] = []
 		self._children: list[Router] = []
 		self._store_route_docs = False
@@ -177,6 +179,7 @@ class Router:
 			enable_api_docs=False,
 			default_headers=default_headers or self.default_headers,
 			error_message_key=self.error_message_key,
+			error_message_prettier=self.error_message_prettier,
 		)
 		r.prefix = self._join(subpath)
 		r._store_route_docs = True
@@ -314,17 +317,20 @@ def _request(
 
 				if has_payload:
 					raw = None
-					request_data = frappe.local.request.get_data(as_text=True)
-					if request_data and frappe.local.request.is_json:
-						try:
-							raw = orjson.loads(request_data)
-						except orjson.JSONDecodeError:
-							raise HTTPException(
-								response=jsonify(
-									{router.error_message_key: "Invalid JSON payload"},
-									status_code=400,
+					if frappe.local.request.method == "GET":
+						raw = frappe.local.form_dict
+					else:
+						request_data = frappe.local.request.get_data(as_text=True)
+						if request_data and frappe.local.request.is_json:
+							try:
+								raw = orjson.loads(request_data)
+							except orjson.JSONDecodeError:
+								raise HTTPException(
+									response=jsonify(
+										{router.error_message_key: "Invalid JSON payload"},
+										status_code=400,
+									)
 								)
-							)
 
 					if not raw:
 						raw = [] if payload_annotation is list else {}
@@ -368,13 +374,23 @@ def _request(
 				PydanticValidationError,
 			) as exc:
 				raise HTTPException(
-					response=_build_error_response(exc, fn.__name__, router.error_message_key)
+					response=_build_error_response(
+						exc,
+						fn.__name__,
+						router.error_message_key,
+						router.error_message_prettier,
+					)
 				)
 			except Exception as exc:
 				if frappe.conf.developer_mode:
 					print(f"Unexpected error in API endpoint {fn.__name__}: {type(exc).__name__}: {exc}")
 				raise HTTPException(
-					response=_build_error_response(exc, fn.__name__, router.error_message_key)
+					response=_build_error_response(
+						exc,
+						fn.__name__,
+						router.error_message_key,
+						router.error_message_prettier,
+					)
 				)
 
 		API_URL_MAP.add(Rule(path, endpoint=executor, methods=methods))
@@ -519,7 +535,12 @@ def _handle_function_result(result: Any, headers: dict | None) -> Response:
 	return result
 
 
-def _build_error_response(exc: Exception, fn_name: str, error_message_key: str = "error") -> Response:
+def _build_error_response(
+	exc: Exception,
+	fn_name: str,
+	error_message_key: str = "error",
+	error_message_prettier: Callable[[dict], str] | None = None,
+) -> Response:
 	error_map = {
 		(frappe.AuthenticationError, frappe.SessionExpired): (401, "login required"),
 		(frappe.PermissionError,): (403, "unauthorized access"),
@@ -557,6 +578,9 @@ def _build_error_response(exc: Exception, fn_name: str, error_message_key: str =
 	response: dict = {error_message_key: msg}
 	if validation_errors:
 		response["validation_errors"] = validation_errors
+
+	if error_message_prettier:
+		response[error_message_key] = error_message_prettier(response)
 
 	return jsonify(response, status_code=code or 500)
 
