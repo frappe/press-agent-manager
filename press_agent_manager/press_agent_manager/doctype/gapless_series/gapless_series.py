@@ -20,6 +20,7 @@ class GaplessSeries(Document):
 		current_value: DF.Int
 		end: DF.Int
 		start: DF.Int
+		step: DF.Int
 		title: DF.Data
 	# end: auto-generated types
 
@@ -49,7 +50,7 @@ class GaplessSeries(Document):
 			available_values.remove(val)
 			new_current_value = current_value
 		else:
-			val = current_value + 1
+			val = current_value + self.step
 			new_current_value = val
 
 		if val > series_data.end:  # type: ignore
@@ -104,6 +105,7 @@ def init_gapless_series(
 	name: str,
 	start_value: int,
 	pool_size: int,
+	step: int = 1,
 	description: str | None = None,
 ) -> GaplessSeries:
 	return frappe.get_doc(
@@ -112,8 +114,9 @@ def init_gapless_series(
 			"name": name,
 			"title": description or name or "",
 			"start": start_value,
-			"current_value": start_value,
+			"step": step,
 			"end": start_value + pool_size - 1,
+			"current_value": start_value,
 		},
 	).insert()  # type: ignore
 
@@ -121,7 +124,7 @@ def init_gapless_series(
 def update_pool_size(series_name: str, new_size: int):
 	series: GaplessSeries = frappe.get_doc("Gapless Series", series_name, for_update=True)  # type: ignore
 	series.end = new_size
-	series.save()
+	series.save(ignore_permissions=True)
 
 
 def get_next_value_from_pool(series_name: str) -> int:

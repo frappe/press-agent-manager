@@ -7,6 +7,7 @@
  "field_order": [
   "start",
   "end",
+  "step",
   "column_break_hyqv",
   "title",
   "current_value",
@@ -59,12 +60,19 @@
    "fieldname": "available_values",
    "fieldtype": "JSON",
    "label": "Available Values"
+  },
+  {
+   "default": "1",
+   "fieldname": "step",
+   "fieldtype": "Int",
+   "label": "Step",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-19 16:21:52.888806",
+ "modified": "2026-01-19 23:10:38.138604",
  "modified_by": "Administrator",
  "module": "Press Agent Manager",
  "name": "Gapless Series",

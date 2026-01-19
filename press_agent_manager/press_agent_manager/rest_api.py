@@ -570,7 +570,7 @@ def _build_error_response(
 		code = 400
 
 	if msg is None:
-		msg = "something went wrong"
+		msg = str(exc) if exc else "something went wrong"
 		code = 500
 		if frappe.conf.developer_mode:
 			print(f"Unhandled exception in {fn_name}: {type(exc).__name__}: {exc}")
