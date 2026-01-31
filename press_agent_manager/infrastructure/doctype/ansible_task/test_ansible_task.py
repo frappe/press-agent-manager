@@ -1,8 +1,9 @@
-# Copyright (c) 2025, Frappe and Contributors
+# Copyright (c) 2026, Frappe and Contributors
 # See license.txt
 
 # import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
+
 
 # On IntegrationTestCase, the doctype test records and all
 # link-field test record dependencies are recursively loaded
@@ -10,14 +11,6 @@ from frappe.tests import IntegrationTestCase, UnitTestCase
 EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
-
-class UnitTestAnsibleTask(UnitTestCase):
-	"""
-	Unit tests for AnsibleTask.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class IntegrationTestAnsibleTask(IntegrationTestCase):

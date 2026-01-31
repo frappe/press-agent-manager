@@ -83,75 +83,17 @@
    "read_only": 1
   },
   {
-   "fieldname": "statistics_section",
-   "fieldtype": "Section Break",
-   "label": "Statistics"
-  },
-  {
-   "fieldname": "ok",
-   "fieldtype": "Int",
-   "label": "Ok",
-   "read_only": 1
-  },
-  {
-   "fieldname": "changed",
-   "fieldtype": "Int",
-   "label": "Changed",
-   "read_only": 1
-  },
-  {
-   "fieldname": "failures",
-   "fieldtype": "Int",
-   "label": "Failures",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_ewum",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "skipped",
-   "fieldtype": "Int",
-   "label": "Skipped",
-   "read_only": 1
-  },
-  {
-   "fieldname": "rescued",
-   "fieldtype": "Int",
-   "label": "Rescued",
-   "read_only": 1
-  },
-  {
-   "fieldname": "ignored",
-   "fieldtype": "Int",
-   "label": "Ignored",
-   "read_only": 1
-  },
-  {
-   "fieldname": "section_break_cvlr",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "variables",
-   "fieldtype": "Code",
-   "label": "Variables",
-   "read_only": 1
-  },
-  {
-   "fieldname": "processed",
-   "fieldtype": "Int",
-   "label": "Processed",
-   "read_only": 1
-  },
-  {
-   "fieldname": "unreachable",
-   "fieldtype": "Int",
-   "label": "Unreachable",
-   "read_only": 1
-  },
-  {
    "fieldname": "section_break_pyum",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "host",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Host",
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "fieldname": "column_break_iycb",
@@ -184,13 +126,71 @@
    "read_only": 1
   },
   {
-   "fieldname": "host",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Host",
-   "read_only": 1,
-   "search_index": 1
+   "fieldname": "statistics_section",
+   "fieldtype": "Section Break",
+   "label": "Statistics"
+  },
+  {
+   "fieldname": "ok",
+   "fieldtype": "Int",
+   "label": "Ok",
+   "read_only": 1
+  },
+  {
+   "fieldname": "changed",
+   "fieldtype": "Int",
+   "label": "Changed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "failures",
+   "fieldtype": "Int",
+   "label": "Failures",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unreachable",
+   "fieldtype": "Int",
+   "label": "Unreachable",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_ewum",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "skipped",
+   "fieldtype": "Int",
+   "label": "Skipped",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rescued",
+   "fieldtype": "Int",
+   "label": "Rescued",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ignored",
+   "fieldtype": "Int",
+   "label": "Ignored",
+   "read_only": 1
+  },
+  {
+   "fieldname": "processed",
+   "fieldtype": "Int",
+   "label": "Processed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_cvlr",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "variables",
+   "fieldtype": "Code",
+   "label": "Variables",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -201,9 +201,9 @@
    "link_fieldname": "play"
   }
  ],
- "modified": "2025-12-15 11:28:43.582507",
+ "modified": "2026-01-31 14:34:31.479103",
  "modified_by": "Administrator",
- "module": "Press Agent Manager",
+ "module": "Infrastructure",
  "name": "Ansible Play",
  "naming_rule": "UUID",
  "owner": "Administrator",
