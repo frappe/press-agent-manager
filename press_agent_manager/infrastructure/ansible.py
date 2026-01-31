@@ -6,6 +6,7 @@ import os
 import subprocess
 import tempfile
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
 import ansible_runner
@@ -30,6 +31,8 @@ class Ansible:
 		port: int = 22,
 		user="root",
 		debug: bool = False,
+		reference_doctype: str | None = None,
+		reference_name: str | None = None,
 	):
 		self.host = host
 		self.port = port
@@ -38,6 +41,8 @@ class Ansible:
 		self.variables = variables or {}
 		self.user = user
 		self.debug = debug
+		self.reference_doctype = reference_doctype
+		self.reference_name = reference_name
 		self.create_ansible_play()
 
 	def create_ansible_play(self):
@@ -53,6 +58,8 @@ class Ansible:
 				"variables": json.dumps(self.variables, indent=4),
 				"playbook": self.playbook,
 				"play": play["name"],
+				"reference_doctype": self.reference_doctype,
+				"reference_name": self.reference_name,
 			}
 		).insert()
 		self.play = play_doc.name
@@ -70,10 +77,18 @@ class Ansible:
 			self.tasks.setdefault(task["role"], {})[task["task"]] = task_doc.name
 			self.task_list.append(task_doc.name)
 
-	def run(self):
-		# Note: ansible-runner sets awx_display as the DisplayCallBack
-		# awx_display listens to the ansible output and emits events for easier consumption
+	def get_ansible_play_doc(self) -> AnsiblePlay:
+		assert self.play, "AnsiblePlay hasn't created"
+		return frappe.get_doc("Ansible Play", self.play)  # type: ignore[assignment]
 
+	def run(self, run_in_background: bool = False) -> AnsiblePlay:
+		if not run_in_background:
+			return self._run_in_foreground()
+
+		frappe.enqueue(self._run_in_foreground, timeout=3600, enqueue_after_commit=True)
+		return self.get_ansible_play_doc()
+
+	def _run_in_foreground(self) -> AnsiblePlay:
 		ansible_runner.run(
 			playbook=self.playbook_path,
 			inventory=self.host,
@@ -83,8 +98,7 @@ class Ansible:
 			quiet=(not self.debug),
 			verbosity=(1 if self.debug else 0),
 		)
-		assert self.play, "Play not found"
-		return frappe.get_doc("Ansible Play", self.play)
+		return self.get_ansible_play_doc()
 
 	def event_handler(self, event):
 		event_type = event.get("event")
@@ -245,6 +259,31 @@ class Ansible:
 		)
 
 
+@dataclass
+class AnsibleStepResult:
+	host: str
+	status: str
+	output: str = ""
+	error: str = ""
+	exception: str = ""
+	exit_code: int | None = None
+	changed: bool = False
+	duration: int = 0
+	task: str | None = None
+
+	@property
+	def is_success(self) -> bool:
+		return self.status == "Success"
+
+	@property
+	def is_failure(self) -> bool:
+		return self.status == "Failure"
+
+	@property
+	def is_unreachable(self) -> bool:
+		return self.status == "Unreachable"
+
+
 class AnsibleAdHoc:
 	def __init__(
 		self,
@@ -285,7 +324,7 @@ class AnsibleAdHoc:
 		module: str = "shell",
 		variables: dict | None = None,
 		become: bool = True,
-	):
+	) -> dict[str, AnsibleStepResult]:
 		# Create a temporary directory for ansible-runner
 		with tempfile.TemporaryDirectory() as private_data_dir:
 			# Setup inventory
@@ -321,7 +360,7 @@ class AnsibleAdHoc:
 		variables: dict | None = None,
 		become: bool = False,
 		forks: int = 16,
-	):
+	) -> dict[str, list[AnsibleStepResult]]:
 		with tempfile.TemporaryDirectory() as private_data_dir:
 			inventory_path = self._setup_inventory(private_data_dir)
 
@@ -350,7 +389,22 @@ class AnsibleAdHoc:
 				verbosity=1 if self.debug else 0,
 			)
 
-			return self.playbook_results
+			return {
+				host: [
+					AnsibleStepResult(
+						host=host,
+						status="Success" if not t.get("failed") else "Failure",
+						output=t.get("stdout", ""),
+						error=t.get("stderr", ""),
+						exception=t.get("msg", ""),
+						exit_code=t.get("rc"),
+						changed=t.get("changed", False),
+						task=t.get("task"),
+					)
+					for t in tasks
+				]
+				for host, tasks in self.playbook_results.items()
+			}
 
 	def _setup_inventory(self, private_data_dir: str) -> str:
 		inventory_content = self._create_inventory()
@@ -546,5 +600,5 @@ class AnsibleAdHoc:
 		with contextlib.suppress(Exception):
 			self.on_publish(self.nonce, list(self.results.values()))
 
-	def _format_results(self):
-		return list(self.results.values())
+	def _format_results(self) -> dict[str, AnsibleStepResult]:
+		return {host: AnsibleStepResult(**result) for host, result in self.results.items()}

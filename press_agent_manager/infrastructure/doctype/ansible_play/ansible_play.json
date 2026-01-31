@@ -13,13 +13,16 @@
   "end",
   "duration",
   "section_break_pyum",
+  "column_break_nghk",
   "host",
   "column_break_iycb",
   "port",
   "column_break_rohn",
   "user",
-  "column_break_ppkn",
-  "public_key",
+  "section_break_oqqn",
+  "reference_doctype",
+  "column_break_olur",
+  "reference_name",
   "statistics_section",
   "ok",
   "changed",
@@ -93,6 +96,7 @@
    "in_standard_filter": 1,
    "label": "Host",
    "read_only": 1,
+   "reqd": 1,
    "search_index": 1
   },
   {
@@ -103,27 +107,20 @@
    "fieldname": "port",
    "fieldtype": "Int",
    "label": "Port",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "fieldname": "column_break_rohn",
    "fieldtype": "Column Break"
   },
   {
+   "default": "root",
    "fieldname": "user",
    "fieldtype": "Data",
    "label": "User",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_ppkn",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "public_key",
-   "fieldtype": "Data",
-   "label": "Public Key",
-   "read_only": 1
+   "read_only": 1,
+   "reqd": 1
   },
   {
    "fieldname": "statistics_section",
@@ -191,6 +188,31 @@
    "fieldtype": "Code",
    "label": "Variables",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_nghk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_oqqn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Doctype",
+   "options": "DocType",
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_olur",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_doctype"
   }
  ],
  "grid_page_length": 50,
@@ -201,7 +223,7 @@
    "link_fieldname": "play"
   }
  ],
- "modified": "2026-01-31 14:34:31.479103",
+ "modified": "2026-01-31 15:20:14.999756",
  "modified_by": "Administrator",
  "module": "Infrastructure",
  "name": "Ansible Play",

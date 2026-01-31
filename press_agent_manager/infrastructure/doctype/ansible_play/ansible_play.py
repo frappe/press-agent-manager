@@ -18,20 +18,21 @@ class AnsiblePlay(Document):
 		duration: DF.Duration | None
 		end: DF.Datetime | None
 		failures: DF.Int
-		host: DF.Data | None
+		host: DF.Data
 		ignored: DF.Int
 		ok: DF.Int
 		play: DF.Data | None
 		playbook: DF.Data | None
 		port: DF.Int
 		processed: DF.Int
-		public_key: DF.Data | None
+		reference_doctype: DF.Link | None
+		reference_name: DF.DynamicLink | None
 		rescued: DF.Int
 		skipped: DF.Int
 		start: DF.Datetime | None
 		status: DF.Literal["Pending", "Running", "Success", "Failure"]
 		unreachable: DF.Int
-		user: DF.Data | None
+		user: DF.Data
 		variables: DF.Code | None
 	# end: auto-generated types
 
