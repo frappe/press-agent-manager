@@ -318,7 +318,7 @@ def _request(
 				if has_payload:
 					raw = None
 					if frappe.local.request.method == "GET":
-						raw = frappe.local.form_dict
+						raw = frappe.local.request.args
 					else:
 						request_data = frappe.local.request.get_data(as_text=True)
 						if request_data and frappe.local.request.is_json:
