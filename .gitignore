@@ -54,3 +54,7 @@ jspm_packages/
 # AI Chat
 .aider*
 .claude
+
+# Vitepress
+docs/.vitepress/dist
+docs/.vitepress/cache
