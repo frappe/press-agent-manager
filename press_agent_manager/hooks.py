@@ -144,10 +144,21 @@ permission_query_conditions = {
 # ---------------
 
 scheduler_events = {
+	"daily_long": [
+		"press_agent_manager.workflow_engine.doctype.press_workflow_object.press_workflow_object.delete_trashed_objects",
+	],
 	"cron": {
-		"*/5 * * * *": "press_agent_manager.agent.control_plane.poll_queued_jobs",
-		"* * * * *": "press_agent_manager.agent.doctype.agent_job.agent_job.submit_agent_jobs_to_controlplane",
-	}
+		"*/5 * * * *": [
+			"press_agent_manager.agent.control_plane.poll_queued_jobs",
+		],
+		"* * * * */10": [
+			"press_agent_manager.workflow_engine.doctype.press_workflow.press_workflow.retry_workflows",
+		],
+		"* * * * *": [
+			"press_agent_manager.workflow_engine.doctype.press_workflow_task.press_workflow_task.retry_tasks",
+			"press_agent_manager.agent.doctype.agent_job.agent_job.submit_agent_jobs_to_controlplane",
+		],
+	},
 }
 
 fixtures = [
