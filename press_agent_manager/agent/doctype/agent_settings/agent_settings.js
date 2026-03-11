@@ -14,5 +14,5 @@ frappe.ui.form.on("Agent Settings", {
 		frm.add_custom_button(__("Ping Control Plane"), () => {
 			frm.call("ping_controlplane");
 		});
-	},
+	}
 });

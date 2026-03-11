@@ -95,7 +95,7 @@ class PressWorkflow(Document):
 		if not self.start:
 			self.start = start
 		self.save()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 		try:
 			with redirect_stdout(buffer):

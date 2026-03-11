@@ -6,6 +6,7 @@ import dataclasses
 import hashlib
 import inspect
 import json
+import math
 import textwrap
 from collections.abc import Callable
 from datetime import datetime
@@ -58,11 +59,11 @@ def _canonicalize(obj: Any, visited: set | None = None) -> Any:
 	if visited is None:
 		visited = set()
 
-	if obj is None or isinstance(obj, (bool, int, str)):
+	if obj is None or isinstance(obj, bool | int | str):
 		return obj
 
 	if isinstance(obj, float):
-		if obj != obj:
+		if math.isnan(obj):
 			return "__NaN__"
 		if obj == float("inf"):
 			return "__Inf__"
@@ -77,7 +78,7 @@ def _canonicalize(obj: Any, visited: set | None = None) -> Any:
 	visited.add(obj_id)
 
 	try:
-		if isinstance(obj, (list, tuple)):
+		if isinstance(obj, list | tuple):
 			return {
 				"__type__": type(obj).__name__,
 				"values": [_canonicalize(x, visited) for x in obj],
@@ -91,7 +92,7 @@ def _canonicalize(obj: Any, visited: set | None = None) -> Any:
 				},
 			}
 
-		if isinstance(obj, (set, frozenset)):
+		if isinstance(obj, set | frozenset):
 			canonicalized = [_canonicalize(x, visited) for x in obj]
 			sorted_values = sorted(canonicalized, key=lambda x: json.dumps(x, sort_keys=True))
 			return {"__type__": type(obj).__name__, "values": sorted_values}

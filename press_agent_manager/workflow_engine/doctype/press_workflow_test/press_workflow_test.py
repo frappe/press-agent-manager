@@ -25,10 +25,9 @@ class PressWorkflowTest(WorkflowBuilder):
 		input_f: DF.Int
 	# end: auto-generated types
 
-
 	def validate(self):
 		if not frappe.in_test:
-			frappe.throw("PressWorkflowTest doctype can be used only in Unit Tests")	
+			frappe.throw("PressWorkflowTest doctype can be used only in Unit Tests")
 
 	@flow
 	def main_success(self):
@@ -89,7 +88,7 @@ class PressWorkflowTest(WorkflowBuilder):
 	@task
 	def multiply_passthrough(self, a: int, b: int, task_id: str | None = None) -> int:
 		"""Multiply that receives task_id so it can be inspected."""
-		print(f"[multiply_passthrough] task_id={task_id}")
+		print(f"[multiply_passthrough] task_id={task_id}")  # nosemgrep
 		return a * b
 
 	@task
@@ -108,7 +107,7 @@ class PressWorkflowTest(WorkflowBuilder):
 
 	@task
 	def noisy_task(self) -> str:
-		print("hello from noisy_task")
+		print("hello from noisy_task")  # nosemgrep
 		return "done"
 
 	@flow
@@ -129,15 +128,15 @@ class PressWorkflowTest(WorkflowBuilder):
 	def missing_method_flow(self):
 		# Intentionally call missing task (not actual registered method)
 		# But since it's an attribute access on self, we just call self._missing()
-		# For this to be registered it needs to be statically seen as a task 
+		# For this to be registered it needs to be statically seen as a task
 		# Or if it fails at runtime.
-		# A better test is a workflow calling a method that was deleted, we'll test that 
+		# A better test is a workflow calling a method that was deleted, we'll test that
 		# by manually changing method_name on a task doc in the test file.
 		return "nothing"
 
 	@flow
 	def skipped_steps_flow(self):
-		# We define it locally but won't call any of the tasks. 
+		# We define it locally but won't call any of the tasks.
 		# Alternatively we can conditionally call them.
 		if False:
 			self.sample_task()

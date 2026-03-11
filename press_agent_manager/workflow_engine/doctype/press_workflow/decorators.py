@@ -117,9 +117,7 @@ def flow(wrapped: Callable[..., Any]) -> Any:
 	"""
 	sig = inspect.signature(wrapped)
 	params = list(sig.parameters.values())
-	sig_without_self = sig.replace(
-		parameters=params[1:] if params and params[0].name == "self" else params
-	)
+	sig_without_self = sig.replace(parameters=params[1:] if params and params[0].name == "self" else params)
 
 	class BoundFlow:
 		def __init__(self, instance: Any) -> None:

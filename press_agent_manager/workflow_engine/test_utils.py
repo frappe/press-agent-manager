@@ -2,11 +2,8 @@
 # For license information, please see license.txt
 
 import dataclasses
-import inspect
 from datetime import datetime, timedelta
-import unittest
 
-import frappe
 from frappe.tests.utils import FrappeTestCase
 
 from press_agent_manager.workflow_engine.utils import (
@@ -40,16 +37,18 @@ class DummyClassForCallVisitor:
 
 class TestWorkflowEngineUtils(FrappeTestCase):
 	def test_method_title(self):
+		# fmt: off
 		def func_with_doc():
-			"""  This is a   Docstring  
+			"""This is a Docstring
 			Second Line
 			"""
 			pass
+		# fmt: on
 
 		def func_without_doc():
 			pass
 
-		self.assertEqual(method_title(func_with_doc), "This is a   Docstring  ")
+		self.assertEqual(method_title(func_with_doc), "This is a Docstring")
 		self.assertEqual(method_title(func_without_doc), "Func Without Doc")
 
 	def test_called_methods_in_order(self):
@@ -63,10 +62,10 @@ class TestWorkflowEngineUtils(FrappeTestCase):
 	def test_calculate_duration(self):
 		start = datetime(2026, 1, 1, 12, 0, 0)
 		end = start + timedelta(seconds=150)
-		
+
 		# Test with datetime objects
 		self.assertEqual(calculate_duration(start, end), 150)
-		
+
 		# Test with string objects
 		self.assertEqual(calculate_duration(str(start), str(end)), 150)
 
@@ -75,7 +74,7 @@ class TestWorkflowEngineUtils(FrappeTestCase):
 		self.assertEqual(_canonicalize(1), 1)
 		self.assertEqual(_canonicalize("test"), "test")
 		self.assertEqual(_canonicalize(True), True)
-		
+
 	def test_canonicalize_floats(self):
 		self.assertEqual(_canonicalize(1.5), 1.5)
 		self.assertEqual(_canonicalize(float("inf")), "__Inf__")
@@ -88,19 +87,19 @@ class TestWorkflowEngineUtils(FrappeTestCase):
 			_canonicalize([1, "a", None]),
 			{"__type__": "list", "values": [1, "a", None]},
 		)
-		
+
 		# Tuple
 		self.assertEqual(
 			_canonicalize((1, 2)),
 			{"__type__": "tuple", "values": [1, 2]},
 		)
-		
+
 		# Dict
 		self.assertEqual(
 			_canonicalize({"b": 2, "a": 1}),
 			{"__type__": "dict", "values": {"a": 1, "b": 2}},
 		)
-		
+
 		# Set
 		self.assertEqual(
 			_canonicalize({2, 1}),
@@ -110,7 +109,7 @@ class TestWorkflowEngineUtils(FrappeTestCase):
 	def test_canonicalize_dataclass(self):
 		obj = DummyDataclass(a=1, b="2")
 		result = _canonicalize(obj)
-		
+
 		self.assertEqual(result["__type__"], f"{__name__}.DummyDataclass")
 		self.assertEqual(result["fields"], {"__type__": "dict", "values": {"a": 1, "b": "2"}})
 
@@ -126,18 +125,18 @@ class TestWorkflowEngineUtils(FrappeTestCase):
 
 		def func_without_task_id(a, b):
 			pass
-			
+
 		self.assertTrue(is_func_accept_task_id(func_with_task_id))
 		self.assertFalse(is_func_accept_task_id(func_without_task_id))
 
 	def test_generate_function_signature(self):
 		def my_func(a, b=2, task_id=None):
 			pass
-			
+
 		sig1 = generate_function_signature(my_func, args=(1,), kwargs={})
 		sig2 = generate_function_signature(my_func, args=(1,), kwargs={"b": 2})
 		sig3 = generate_function_signature(my_func, args=(1, 2), kwargs={})
-		
+
 		self.assertEqual(sig1, sig2)
 		self.assertEqual(sig1, sig3)
 

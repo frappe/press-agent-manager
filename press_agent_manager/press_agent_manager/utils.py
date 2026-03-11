@@ -82,7 +82,7 @@ def _execute_command_impl(*popenargs: Any, **kwargs: Any):
 	if user_env:
 		base_env.update(user_env)
 
-	if isinstance(cmd, (list, tuple)) and list(cmd[:2]) == ["chroot", rootfs]:
+	if isinstance(cmd, list | tuple) and list(cmd[:2]) == ["chroot", rootfs]:
 		return subprocess.run(*popenargs, **kwargs)
 
 	prefix = ["chroot", rootfs, "/usr/bin/env", "-i"]
@@ -98,7 +98,7 @@ def _execute_command_impl(*popenargs: Any, **kwargs: Any):
 	else:
 		if isinstance(cmd, str):
 			cmd = shlex.split(cmd)
-		new_cmd = [*prefix, *cmd] if isinstance(cmd, (list, tuple)) else cmd
+		new_cmd = [*prefix, *cmd] if isinstance(cmd, list | tuple) else cmd
 
 	if use_kwargs:
 		kwargs["args"] = new_cmd
