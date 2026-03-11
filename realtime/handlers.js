@@ -7,7 +7,7 @@ function press_agent_manager_event_handler(socket) {
 		send_request(socket, {
 			path: `/api/control-plane/remote-jobs/${job_id}/sync-job`,
 			method: "POST",
-			json: data,
+			json: data
 		});
 	});
 
@@ -17,7 +17,7 @@ function press_agent_manager_event_handler(socket) {
 		send_request(socket, {
 			path: `/api/control-plane/remote-jobs/${job_id}/sync-step`,
 			method: "POST",
-			json: data,
+			json: data
 		});
 	});
 }
@@ -49,7 +49,7 @@ function send_request(
 		method,
 		headers: finalHeaders,
 		body,
-		...rest,
+		...rest
 	});
 }
 

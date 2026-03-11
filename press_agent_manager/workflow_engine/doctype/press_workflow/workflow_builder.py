@@ -154,9 +154,10 @@ class WorkflowBuilder(Document):
 			self.kv_store_reference = InMemoryKVStore()
 
 		elif self.kv_store_type == "workflow_store":
-			assert self.workflow_name is not None, (
-				"Workflow name must be set in frappe.flags.current_workflow to use workflow_store KV store."
-			)
+			assert (
+				self.workflow_name is not None
+			), "Workflow name must be set in frappe.flags.current_workflow to use workflow_store KV store."
+
 			self.kv_store_reference = WorkflowKVStore(self.workflow_name)
 
 		else:

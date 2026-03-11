@@ -12,11 +12,11 @@ frappe.ui.form.on("Virtual Machine", {
 						`Are you sure you want to ${label.toLowerCase()} this virtual machine?`,
 						() => {
 							frm.call(method).then(() => frm.refresh());
-						},
+						}
 					);
 				},
-				"Actions",
+				"Actions"
 			);
 		});
-	},
+	}
 });

@@ -6,5 +6,5 @@ frappe.ui.form.on("Agent", {
 		frm.add_custom_button("Ping", () => {
 			frm.call("ping");
 		});
-	},
+	}
 });

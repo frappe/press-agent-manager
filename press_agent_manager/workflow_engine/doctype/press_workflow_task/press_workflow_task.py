@@ -116,7 +116,7 @@ class PressWorkflowTask(Document):
 
 		self.status = "Running"
 		self.save()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 		output = None
 		exception = None
