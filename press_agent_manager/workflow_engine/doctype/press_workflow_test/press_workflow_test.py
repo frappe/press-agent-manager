@@ -126,12 +126,6 @@ class PressWorkflowTest(WorkflowBuilder):
 
 	@flow
 	def missing_method_flow(self):
-		# Intentionally call missing task (not actual registered method)
-		# But since it's an attribute access on self, we just call self._missing()
-		# For this to be registered it needs to be statically seen as a task
-		# Or if it fails at runtime.
-		# A better test is a workflow calling a method that was deleted, we'll test that
-		# by manually changing method_name on a task doc in the test file.
 		return "nothing"
 
 	@flow
