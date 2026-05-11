@@ -248,7 +248,7 @@ class PressWorkflow(Document):
 					reference_name=self.name,
 				)
 
-	def update_skipped_steps_status(self, save: bool = True):  # noqa: C901 - best to keep it in one place
+	def update_skipped_steps_status(self, save: bool = True):
 		is_updated = False
 
 		if self.status in ["Success", "Failure"]:
@@ -301,7 +301,7 @@ class PressWorkflow(Document):
 
 def enqueue_workflow(workflow_name: str) -> None:
 	if frappe.flags.in_test:
-		from press.utils.test import foreground_enqueue_workflow
+		from press_agent_manager.workflow_engine.test import foreground_enqueue_workflow
 
 		foreground_enqueue_workflow(workflow_name)
 		return
