@@ -17,8 +17,8 @@ from frappe.utils import now_datetime as now
 from press_agent_manager.press_agent_manager.utils import reconnect_on_failure
 
 if TYPE_CHECKING:
-	from press_agent_manager.infrastructure.doctype.ansible_play.ansible_play import AnsiblePlay
-	from press_agent_manager.infrastructure.doctype.ansible_task.ansible_task import AnsibleTask
+	from press_agent_manager.iac.doctype.ansible_play.ansible_play import AnsiblePlay
+	from press_agent_manager.iac.doctype.ansible_task.ansible_task import AnsibleTask
 
 
 class Ansible:
