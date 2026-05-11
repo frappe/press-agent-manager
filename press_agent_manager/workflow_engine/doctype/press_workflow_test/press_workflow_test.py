@@ -2,7 +2,6 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.model.document import Document
 
 from press_agent_manager.workflow_engine.doctype.press_workflow.decorators import flow, task
 from press_agent_manager.workflow_engine.doctype.press_workflow.workflow_builder import WorkflowBuilder
