@@ -3,10 +3,13 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import shutil
 import subprocess
+import sys
 import tempfile
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Literal
 
 import ansible_runner
@@ -44,6 +47,23 @@ class Ansible:
 		self.reference_doctype = reference_doctype
 		self.reference_name = reference_name
 		self.create_ansible_play()
+
+	@cached_property
+	def _ansible_playbook_bin(self) -> str:
+		ansible_playbook = shutil.which("ansible-playbook")
+		if not ansible_playbook:
+			venv_bin = os.path.dirname(os.path.abspath(sys.executable))
+			ansible_playbook = os.path.join(venv_bin, "ansible-playbook")
+		return ansible_playbook
+
+	@cached_property
+	def _ansible_playbook_env(self) -> dict[str, str]:
+		venv_bin_dir = os.path.dirname(self._ansible_playbook_bin)
+		env = os.environ.copy()
+		current_path = env.get("PATH", "")
+		if venv_bin_dir not in current_path:
+			env["PATH"] = f"{venv_bin_dir}:{current_path}"
+		return env
 
 	def create_ansible_play(self):
 		# Parse the playbook and create Ansible Tasks so we can show how many tasks are pending
@@ -97,6 +117,7 @@ class Ansible:
 			event_handler=self.event_handler,
 			quiet=(not self.debug),
 			verbosity=(1 if self.debug else 0),
+			envvars={"PATH": self._ansible_playbook_env["PATH"]},
 		)
 		return self.get_ansible_play_doc()
 
@@ -245,9 +266,14 @@ class Ansible:
 		return parsed
 
 	def _get_task_list(self):
-		return subprocess.check_output(["ansible-playbook", self.playbook_path, "--list-tasks"]).decode(
-			"utf-8"
-		)
+		playbook_path = os.path.abspath(self.playbook_path)
+		if not os.path.exists(playbook_path):
+			raise FileNotFoundError(f"Playbook not found at {playbook_path}")
+
+		return subprocess.check_output(
+			[self._ansible_playbook_bin, playbook_path, "--list-tasks"],
+			env=self._ansible_playbook_env,
+		).decode("utf-8")
 
 	def _publish_play_progress(self, task):
 		frappe.publish_realtime(
