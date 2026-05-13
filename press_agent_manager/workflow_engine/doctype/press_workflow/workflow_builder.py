@@ -217,3 +217,8 @@ class WorkflowBuilder(Document):
 			if hasattr(self.flags, "current_press_workflow_task")
 			else None,
 		)
+
+
+	@property
+	def is_in_workflow_execution(self) -> bool:
+		return getattr(self.flags, "in_press_workflow_execution", False)

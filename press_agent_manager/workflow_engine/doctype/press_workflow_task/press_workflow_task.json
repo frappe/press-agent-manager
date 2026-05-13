@@ -185,29 +185,29 @@
    "fieldtype": "Long Text",
    "label": "Traceback",
    "read_only": 1
-  },
-  {
-   "fieldname": "args_type",
-   "fieldtype": "Select",
-   "label": "Args Type",
-   "options": "int\nfloat\nstring\ntuple\nlist\ndict\nobject",
-   "read_only": 1
-  },
-  {
-   "fieldname": "kwargs_type",
-   "fieldtype": "Data",
-   "label": "Kwargs Type",
-   "options": "int\nfloat\nstring\ntuple\nlist\ndict\nobject",
-   "read_only": 1
-  },
-  {
-   "fieldname": "output_type",
-   "fieldtype": "Select",
-   "label": "Output Type",
-   "length": 1000,
-   "options": "int\nfloat\nstring\ntuple\nlist\ndict\nobject",
-   "read_only": 1
-  }
+   },
+   {
+    "fieldname": "args_type",
+    "fieldtype": "Select",
+    "label": "Args Type",
+    "options": "bool\nint\nfloat\nstring\ntuple\nlist\ndict\nobject",
+    "read_only": 1
+   },
+   {
+    "fieldname": "kwargs_type",
+    "fieldtype": "Data",
+    "label": "Kwargs Type",
+    "options": "bool\nint\nfloat\nstring\ntuple\nlist\ndict\nobject",
+    "read_only": 1
+   },
+   {
+    "fieldname": "output_type",
+    "fieldtype": "Select",
+    "label": "Output Type",
+    "length": 1000,
+    "options": "bool\nint\nfloat\nstring\ntuple\nlist\ndict\nobject",
+    "read_only": 1
+   }
  ],
  "grid_page_length": 50,
  "links": [],

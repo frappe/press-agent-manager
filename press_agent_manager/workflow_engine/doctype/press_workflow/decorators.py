@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import time
 import typing
 from functools import wraps
 from typing import Any, Concatenate, Generic, ParamSpec, Protocol, TypeVar, overload
@@ -10,7 +11,12 @@ from typing import Any, Concatenate, Generic, ParamSpec, Protocol, TypeVar, over
 import frappe
 from frappe.model.document import Document
 
-from press_agent_manager.workflow_engine.doctype.press_workflow.workflow_builder import WorkflowBuilder
+from press_agent_manager.workflow_engine.doctype.press_workflow.exceptions import (
+	PressWorkflowTaskEnqueued,
+)
+from press_agent_manager.workflow_engine.doctype.press_workflow.workflow_builder import (
+	WorkflowBuilder,
+)
 from press_agent_manager.workflow_engine.utils import (
 	called_methods_in_order,
 	is_func_accept_task_id,
@@ -64,12 +70,22 @@ class _BoundTask(Generic[_P, _R_co]):
 
 		if not is_func_accept_task_id(self._wrapped):
 			kwargs = {k: v for k, v in kwargs.items() if k != "task_id"}
-		return self._wrapped(self._instance, *args, **kwargs)
+
+		# Direct call if not in workflow execution context
+		while True:
+			try:
+				return self._wrapped(self._instance, *args, **kwargs)  # type: ignore
+			# Wait for the task to either complete
+			# or throw some other error except PressWorkflowTaskEnqueued
+			except PressWorkflowTaskEnqueued:
+				if not frappe.in_test:
+					frappe.db.commit()
+				time.sleep(1)  # wait a bit before retrying to avoid busy loop
 
 	def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R_co:
 		return self._execute(args, kwargs)  # type: ignore[arg-type]
 
-	def with_task_id(self, task_id: str) -> "_BoundTask[_P, _R_co]":
+	def with_task_id(self, task_id: str) -> _BoundTask[_P, _R_co]:
 		bound: _BoundTask[_P, _R_co] = _BoundTask(
 			self._wrapped, self._instance, queue=self._queue, timeout=self._timeout
 		)
@@ -88,12 +104,18 @@ class _TaskDescriptor(Generic[_P, _R_co]):
 		self._queue = queue
 		self._timeout = timeout
 		wraps(wrapped)(self)  # type: ignore[arg-type]
+		self.__annotations__ = getattr(wrapped, "__annotations__", {})
+		self.__code__ = getattr(wrapped, "__code__", None)
+
+	def __call__(self, instance: Any, *args: _P.args, **kwargs: _P.kwargs) -> _R_co:
+		bound = _BoundTask(self._wrapped, instance, queue=self._queue, timeout=self._timeout)
+		return bound(*args, **kwargs)
 
 	def __set_name__(self, owner: type, name: str) -> None:
 		self._name = name
 
 	@overload
-	def __get__(self, instance: None, owner: type) -> "_TaskDescriptor[_P, _R_co]": ...
+	def __get__(self, instance: None, owner: type) -> _TaskDescriptor[_P, _R_co]: ...
 
 	@overload
 	def __get__(self, instance: Any, owner: type) -> _BoundTask[_P, _R_co]: ...
@@ -109,7 +131,7 @@ def task(wrapped: _F) -> _F: ...
 
 
 @overload
-def task(*, queue: str | None = None, timeout: int | None = None) -> "Callable[[_F], _F]": ...
+def task(*, queue: str | None = None, timeout: int | None = None) -> Callable[[_F], _F]: ...
 
 
 def task(
@@ -198,7 +220,9 @@ class BoundFlow:
 
 
 @overload
-def flow(wrapped: Callable[Concatenate[_Self, _P], _R_co]) -> FlowCallable[_P, _R_co]: ...
+def flow(
+	wrapped: Callable[Concatenate[_Self, _P], _R_co],
+) -> FlowCallable[_P, _R_co]: ...
 
 
 @overload
@@ -227,6 +251,10 @@ def flow(wrapped: Callable[..., Any]) -> Any:
 		def __get__(self, instance: Any, owner: type) -> Any:
 			if instance is None:
 				return self
-			return BoundFlow(instance=instance, signature_without_self=sig_without_self, wrapped=wrapped)
+			return BoundFlow(
+				instance=instance,
+				signature_without_self=sig_without_self,
+				wrapped=wrapped,
+			)
 
 	return FlowDescriptor()
