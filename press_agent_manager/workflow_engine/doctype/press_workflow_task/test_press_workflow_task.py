@@ -220,7 +220,7 @@ class TestPressWorkflowTask(FrappeTestCase):
 		)
 
 		with patch(
-			"press.workflow_engine.doctype.press_workflow_task.press_workflow_task.enqueue_task",
+			"press_agent_manager.workflow_engine.doctype.press_workflow_task.press_workflow_task.enqueue_task",
 			return_value=None,
 		):
 			task_doc = frappe.new_doc("Press Workflow Task")

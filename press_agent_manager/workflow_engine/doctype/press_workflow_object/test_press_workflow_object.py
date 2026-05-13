@@ -104,7 +104,7 @@ class IntegrationTestPressWorkflowObject(IntegrationTestCase):
 		self.assertEqual(retrieved, obj)
 
 	def test_delete_trashed_objects(self):
-		from press.workflow_engine.doctype.press_workflow_object.press_workflow_object import (
+		from press_agent_manager.workflow_engine.doctype.press_workflow_object.press_workflow_object import (
 			delete_trashed_objects,
 		)
 

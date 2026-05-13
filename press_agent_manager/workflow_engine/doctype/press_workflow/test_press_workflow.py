@@ -110,7 +110,7 @@ class IntegrationTestPressWorkflow(FrappeTestCase):
 
 	def test_force_fail(self):
 		with patch(
-			"press.workflow_engine.doctype.press_workflow.press_workflow.enqueue_workflow",
+			"press_agent_manager.workflow_engine.doctype.press_workflow.press_workflow.enqueue_workflow",
 			new=lambda *_args, **_kwargs: None,
 		):
 			wf = frappe.get_doc(
@@ -171,7 +171,7 @@ class IntegrationTestPressWorkflow(FrappeTestCase):
 
 	def test_workflow_queued_running_error(self):
 		with patch(
-			"press.workflow_engine.doctype.press_workflow.press_workflow.enqueue_workflow",
+			"press_agent_manager.workflow_engine.doctype.press_workflow.press_workflow.enqueue_workflow",
 			new=lambda *_args, **_kwargs: None,
 		):
 			wf = frappe.get_doc(
