@@ -166,6 +166,9 @@ class Router:
 	def delete(self, path: str = "", allow_guest=False, include_in_docs: bool = True):
 		return self._create_method_decorator("DELETE")(path, allow_guest, include_in_docs)
 
+	def request(self, method: str, path: str = "", allow_guest=False, include_in_docs: bool = True):
+		return self._create_method_decorator(method)(path, allow_guest, include_in_docs)
+
 	def subrouter(
 		self,
 		subpath: str,
