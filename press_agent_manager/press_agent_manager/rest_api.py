@@ -24,6 +24,8 @@ class RouteMeta:
 	func: Callable
 	payload_type: Any | None
 	payload_info: tuple[bool, bool, Any | None]  # (is_pydantic, is_list, item_type)
+	query_type: Any | None
+	query_info: tuple[bool, bool, Any | None]  # (is_pydantic, is_list, item_type)
 	include_in_docs: bool = True
 	tag: str | None = None
 
@@ -305,6 +307,9 @@ def _request(
 		payload_annotation, payload_info, _, params = _resolve_payload_annotation(fn)
 		has_payload = payload_annotation is not None
 
+		query_annotation, query_info, _, _ = _resolve_query_annotation(fn)
+		has_query = query_annotation is not None
+
 		accepts_var_kwargs = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
 		accepted_kwarg_names = {
 			name
@@ -321,22 +326,44 @@ def _request(
 				if not allow_guest and (not frappe.session or frappe.session.user == "Guest"):
 					raise frappe.AuthenticationError()
 
-				if has_payload:
-					raw = None
-					if frappe.local.request.method == "GET":
-						raw = frappe.local.request.args
-					else:
-						request_data = frappe.local.request.get_data(as_text=True)
-						if request_data and frappe.local.request.is_json:
-							try:
-								raw = orjson.loads(request_data)
-							except orjson.JSONDecodeError:
-								raise HTTPException(
-									response=jsonify(
-										{router.error_message_key: "Invalid JSON payload"},
-										status_code=400,
-									)
+				if has_query and frappe.local.request.method == "GET":
+					raw_query = dict(frappe.local.request.args)
+					if not raw_query:
+						raw_query = {}
+
+					if query_annotation:
+						converted = _validate_and_convert_payload(
+							raw_query, query_annotation, query_info, fn.__name__
+						)
+
+						if converted is None:
+							error_msg = f"Invalid query parameters for {fn.__name__}"
+							if query_info[0]:  # is_pydantic
+								error_msg += f": expected {query_annotation.__name__} model"
+							else:
+								error_msg += f": expected {query_annotation.__name__}"
+							raise HTTPException(
+								response=jsonify(
+									{router.error_message_key: error_msg},
+									status_code=400,
 								)
+							)
+
+						kwargs["query"] = converted
+
+				if has_payload and frappe.local.request.method != "GET":
+					raw = None
+					request_data = frappe.local.request.get_data(as_text=True)
+					if request_data and frappe.local.request.is_json:
+						try:
+							raw = orjson.loads(request_data)
+						except orjson.JSONDecodeError:
+							raise HTTPException(
+								response=jsonify(
+									{router.error_message_key: "Invalid JSON payload"},
+									status_code=400,
+								)
+							)
 
 					if not raw:
 						raw = [] if payload_annotation is list else {}
@@ -410,6 +437,8 @@ def _request(
 					func=fn,
 					payload_type=payload_annotation,
 					payload_info=payload_info,
+					query_type=query_annotation,
+					query_info=query_info,
 					include_in_docs=include_in_docs,
 					tag=router.name,
 				)
@@ -484,6 +513,56 @@ def _resolve_payload_annotation(
 	return annotation, (is_pydantic, False, None), sig, params
 
 
+def _resolve_query_annotation(
+	fn: Callable,
+) -> tuple[Any | None, tuple[bool, bool, Any | None], inspect.Signature, Any]:
+	sig = inspect.signature(fn)
+	params = sig.parameters
+	param = params.get("query")
+	if not param:
+		return None, (False, False, None), sig, params
+
+	try:
+		hints = get_type_hints(fn)
+		annotation = hints.get("query")
+	except (NameError, AttributeError, TypeError) as e:
+		if frappe.conf.developer_mode:
+			print(f"Could not resolve type hints for {fn.__name__}: {e}")
+		annotation = fn.__annotations__.get("query")
+
+	if not annotation or annotation is inspect._empty:
+		if frappe.conf.developer_mode:
+			print(f"query parameter without type annotation in {fn.__name__}")
+		raise frappe.ValidationError("bad request")
+
+	# Check if it's a generic type (like list[Something])
+	origin = get_origin(annotation)
+
+	if origin is list:
+		args = get_args(annotation)
+		if args:
+			item_type = args[0]
+			if isinstance(item_type, type) and issubclass(item_type, PydanticBaseModel):
+				return list, (True, True, item_type), sig, params
+
+		return list, (False, True, None), sig, params
+
+	# Reject other generic types and unions
+	if isinstance(annotation, types.UnionType) or (origin is not None and origin is not list):
+		if frappe.conf.developer_mode:
+			print(f"unions/generics not allowed; got {annotation!r} in {fn.__name__}")
+		raise frappe.ValidationError("bad request")
+
+	is_pydantic = isinstance(annotation, type) and issubclass(annotation, PydanticBaseModel)
+
+	if annotation not in (list, dict) and not is_pydantic:
+		if frappe.conf.developer_mode:
+			print(f"invalid query type {annotation!r} in {fn.__name__}")
+		raise frappe.ValidationError("bad request")
+
+	return annotation, (is_pydantic, False, None), sig, params
+
+
 def _validate_and_convert_payload(
 	raw: Any, annotation: Any, payload_info: tuple[bool, bool, Any | None], fn_name: str
 ) -> Any:
@@ -530,6 +609,8 @@ def _handle_function_result(result: Any, headers: dict | None) -> Response:
 			result.status_code = status
 	elif isinstance(result, dict | list):
 		return jsonify(result, status_code=status or 200)
+	elif isinstance(result, PydanticBaseModel):
+		return jsonify(result.model_dump(mode="json"), status_code=status or 200)
 	else:
 		result = Response(str(result), status=status or 200, mimetype="text/plain")
 
@@ -801,14 +882,15 @@ def _build_operation(
 	if path_params:
 		op["parameters"] = list(path_params)
 
-	schema = _schema_for_payload(route_meta.payload_type, route_meta.payload_info, components_schemas)
-
-	if schema and method == "get":
-		is_pydantic, is_list, _ = route_meta.payload_info
-		qp = _query_params_from_schema(route_meta.payload_type, is_pydantic and not is_list)
+	if route_meta.query_type and method == "get":
+		is_pydantic, is_list, _ = route_meta.query_info
+		qp = _query_params_from_schema(route_meta.query_type, is_pydantic and not is_list)
 		if qp:
 			op.setdefault("parameters", []).extend(qp)
-	elif schema:
+
+	schema = _schema_for_payload(route_meta.payload_type, route_meta.payload_info, components_schemas)
+
+	if schema:
 		content_schema: dict[str, Any] = {"schema": schema}
 		if docs_meta and docs_meta.request_example is not None:
 			content_schema["example"] = docs_meta.request_example
