@@ -166,6 +166,9 @@ class Router:
 	def delete(self, path: str = "", allow_guest=False, include_in_docs: bool = True):
 		return self._create_method_decorator("DELETE")(path, allow_guest, include_in_docs)
 
+	def patch(self, path: str = "", allow_guest=False, include_in_docs: bool = True):
+		return self._create_method_decorator("PATCH")(path, allow_guest, include_in_docs)
+
 	def request(self, method: str, path: str = "", allow_guest=False, include_in_docs: bool = True):
 		return self._create_method_decorator(method)(path, allow_guest, include_in_docs)
 
@@ -423,7 +426,7 @@ def _request(
 def _validate_http_methods(methods: list[str]) -> None:
 	if not methods:
 		raise ValueError("HTTP methods must be specified")
-	valid_methods = {"HEAD", "GET", "POST", "PUT", "DELETE"}
+	valid_methods = {"HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"}
 	for method in methods:
 		if method not in valid_methods:
 			raise ValueError(f"Invalid HTTP method: {method}")
