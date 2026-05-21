@@ -322,6 +322,12 @@ def _request(
 		}
 
 		def executor(*args, **kwargs):
+			is_http = getattr(frappe.local, "request", None) is not None and hasattr(
+				frappe.local.request, "method"
+			)
+			if not is_http:
+				return fn(*args, **kwargs)
+
 			try:
 				if not allow_guest and (not frappe.session or frappe.session.user == "Guest"):
 					raise frappe.AuthenticationError()
