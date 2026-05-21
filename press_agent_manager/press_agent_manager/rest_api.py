@@ -332,7 +332,15 @@ def _request(
 				if not allow_guest and (not frappe.session or frappe.session.user == "Guest"):
 					raise frappe.AuthenticationError()
 
-				if has_query and frappe.local.request.method == "GET":
+				query_provided = "query" in kwargs or (
+					query_annotation is not None and any(isinstance(arg, query_annotation) for arg in args)
+				)
+				payload_provided = "payload" in kwargs or (
+					payload_annotation is not None
+					and any(isinstance(arg, payload_annotation) for arg in args)
+				)
+
+				if has_query and not query_provided and frappe.local.request.method == "GET":
 					raw_query = dict(frappe.local.request.args)
 					if not raw_query:
 						raw_query = {}
@@ -357,7 +365,7 @@ def _request(
 
 						kwargs["query"] = converted
 
-				if has_payload and frappe.local.request.method != "GET":
+				if has_payload and not payload_provided and frappe.local.request.method != "GET":
 					raw = None
 					request_data = frappe.local.request.get_data(as_text=True)
 					if request_data and frappe.local.request.is_json:
@@ -401,6 +409,8 @@ def _request(
 					call_kwargs = {k: v for k, v in kwargs.items() if k in accepted_kwarg_names}
 
 				result = fn(*args, **call_kwargs)
+				if frappe.flags.in_test:
+					return result
 				return _handle_function_result(result, router.default_headers)
 
 			except HTTPException:
